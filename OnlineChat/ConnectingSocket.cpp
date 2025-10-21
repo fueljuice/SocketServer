@@ -4,13 +4,13 @@
 HDE::ConnectingSocket::ConnectingSocket(int domain, int service, int protocol, int port, u_long network_interface)
 	: SimpleSocket(domain, service, protocol, port, network_interface)
 {
-	connectToNetwork(getSock(), getAdress());
+	connectToNetwork(getSock(), getAddress());
 	testConnection(getSock());
 };
 
 
 int HDE::ConnectingSocket::connectToNetwork(int sock, struct sockaddr_in address)
 {
-	return connect(sock, (struct sockaddr*)&address, sizeof(address));
+	return connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 
 }

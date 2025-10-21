@@ -13,6 +13,11 @@ private:
 	WSADATA wsa;
 	struct sockaddr_in address;
 	int sock;
+
+
+
+	// setup WSA and raise error if fail
+	void initWSA();
 	
 public:
 
@@ -24,16 +29,12 @@ public:
 	// checks the socket file descriptor
 	void testConnection(const int &sock) const;
 
-	// setup WSA and raise error if fail
-	void initWSA();
-
-
 	//getter
-	struct sockaddr_in getAdress() const;
+	struct sockaddr_in getAddress() const;
 	int getSock() const;
 
 	//setter
-	void setAdress(const struct sockaddr_in &add);
+	void setAddress(const struct sockaddr_in &add);
 	void setSock(const int& sock);
 
 	virtual ~SimpleSocket();

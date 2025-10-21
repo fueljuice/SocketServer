@@ -20,8 +20,6 @@ void HDE::SimpleSocket::testConnection(const int &sock) const
 	if (sock < 0)
 	{
 		std::cout << sock << std::endl;
-		closesocket(sock);
-		WSACleanup();
 		perror("failed to zoharconnect");
 		exit(EXIT_FAILURE);
 
@@ -39,7 +37,7 @@ void HDE::SimpleSocket::initWSA()
 	}
 }
 
-struct sockaddr_in HDE::SimpleSocket::getAdress() const
+struct sockaddr_in HDE::SimpleSocket::getAddress() const
 {
 	return address;
 }
@@ -52,7 +50,7 @@ int HDE::SimpleSocket::getSock() const
 
 
 
-void HDE::SimpleSocket::setAdress(const struct sockaddr_in &address)
+void HDE::SimpleSocket::setAddress(const struct sockaddr_in &address)
 {
 	this->address = address;
 }

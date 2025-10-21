@@ -133,6 +133,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SimpleSocket.cpp" />
     <ClCompile Include="SocketServer.cpp" />
+    <ClCompile Include="TestServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BindingSocket.h" />
@@ -140,6 +141,7 @@
     <ClInclude Include="ListeningSocket.h" />
     <ClInclude Include="SimpleSocket.h" />
     <ClInclude Include="SocketServer.h" />
+    <ClInclude Include="TestServer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

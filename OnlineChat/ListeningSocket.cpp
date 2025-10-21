@@ -3,7 +3,8 @@
 #include "ListeningSocket.h"
 
 
-HDE::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port, u_long network_interaface, int backlog)
+HDE::ListeningSocket::ListeningSocket(int domain, int service,
+	int protocol, int port, u_long network_interaface, int backlog)
 	: BindingSocket(domain, service, protocol, port, network_interaface)
 {
 	this->backlog = backlog;
@@ -14,6 +15,6 @@ HDE::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int
 
 void HDE::ListeningSocket::startLisetning()
 {
-	std::cout << "here" << std::endl;
+	std::cout << "start lisetning" << std::endl;
 	listening = listen(getSock(), backlog);
 }
