@@ -4,6 +4,7 @@ void HDE::TestServer::launch()
 {
     int iResult;
     std::thread worker1(handleConnection);
+    std::thread worker2(responder);
     for (;;)
     {
         for (clientSocketData data : clientVector)
@@ -14,7 +15,12 @@ void HDE::TestServer::launch()
                 iResult = recv(data.clientSocket, data.buffer, sizeof(data.buffer), 0);
 
                 if (iResult == 0)
+                {
+                    // remove it if connection is closed
                     printf("Connection closed\n");
+                    clientVector.erase(std::remove(clientVector.begin(), clientVector.end(), data),
+                        clientVector.end());
+                }
                 else
                     printf("recv failed: %d\n", WSAGetLastError());
 
@@ -60,5 +66,24 @@ void HDE::TestServer::handleConnection()
 
     }
 
+}
+
+void HDE::TestServer::responder()
+{
+    for (;;)
+    {
+        for (clientSocketData data : clientVector)
+        {
+
+            do
+            {
+                handleClientData(data.buffer);
+                
+            } while (true);
+
+
+        }
+
+    }
 }
 

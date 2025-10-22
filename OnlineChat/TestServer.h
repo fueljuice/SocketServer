@@ -13,6 +13,13 @@ namespace HDE
 class TestServer : public SocketServer
 {
 private:
+	enum action
+	{
+		GETCHAT,
+		SENDMESSAGE
+
+	};
+
 	std::mutex m;
 	std::vector<clientSocketData> clientVector;
 	clientSocketData acceptConnection() override;
@@ -20,6 +27,8 @@ private:
 	void handleConnection();
 
 	void responder();
+
+	action handleClientData(char* buffer);
 
 public:
 	void launch();
