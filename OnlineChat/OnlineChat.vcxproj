@@ -127,8 +127,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BindingSocket.cpp" />
     <ClCompile Include="ConnectingSocket.cpp" />
+    <ClCompile Include="FJProtocol.cpp" />
     <ClCompile Include="ListeningSocket.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SimpleSocket.cpp" />
@@ -136,8 +136,9 @@
     <ClCompile Include="TestServer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BindingSocket.h" />
+    <ClInclude Include="ClientInterface.h" />
     <ClInclude Include="ConnectingSocket.h" />
+    <ClInclude Include="FJProtocol.h" />
     <ClInclude Include="ListeningSocket.h" />
     <ClInclude Include="SimpleSocket.h" />
     <ClInclude Include="SocketServer.h" />

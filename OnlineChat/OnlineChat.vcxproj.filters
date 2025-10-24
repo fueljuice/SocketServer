@@ -21,9 +21,6 @@
     <ClCompile Include="SimpleSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BindingSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConnectingSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,12 +36,12 @@
     <ClCompile Include="TestServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FJProtocol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SimpleSocket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BindingSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConnectingSocket.h">
@@ -57,6 +54,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TestServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FJProtocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

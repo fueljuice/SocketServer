@@ -4,6 +4,7 @@
 
 HDE::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface)
 {
+	std::cout << "initiating socket..." << std::endl;
 	initWSA();
 	address.sin_family = domain;
 	address.sin_port = htons(port);
@@ -11,6 +12,7 @@ HDE::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port,
 	sock = socket(domain, service, protocol);
 	std::cout << sock << std::endl;
 	testConnection(sock);
+	std::cout << "sucsessful socket init" << std::endl;
 	
 		
 }
@@ -20,7 +22,7 @@ void HDE::SimpleSocket::testConnection(const int &sock) const
 	if (sock < 0)
 	{
 		std::cout << sock << std::endl;
-		perror("failed to zoharconnect");
+		perror("failed to zohar connect");
 		exit(EXIT_FAILURE);
 
 	}
@@ -35,6 +37,7 @@ void HDE::SimpleSocket::initWSA()
 		closesocket(sock);
 		WSACleanup();
 	}
+	std::cout << "WSA sucsess " << std::endl;
 }
 
 struct sockaddr_in HDE::SimpleSocket::getAddress() const
@@ -62,7 +65,7 @@ void HDE::SimpleSocket::setSock(const int &sock)
 
 HDE::SimpleSocket::~SimpleSocket()
 {
-	std::cout << "cleanup" << std::endl;
+	std::cout << "destructing wsa and the socket" << std::endl;
 	closesocket(sock);
 	WSACleanup();
 }
