@@ -9,7 +9,7 @@ HDE::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int
 	connectToNetwork(getSock(), getAddress());
 }
 
-int HDE::ListeningSocket::connectToNetwork(int sock, sockaddr_in address)
+void HDE::ListeningSocket::connectToNetwork(int sock, sockaddr_in address)
 {
 	bindSocket(sock, address);
 	//testing binding
@@ -20,6 +20,7 @@ int HDE::ListeningSocket::connectToNetwork(int sock, sockaddr_in address)
 	startLisetning();
 	testConnection(listening);
 	std::cout << "started lisetning sucsessfuly on port" << getAddress().sin_port << std::endl;
+
 }
 
 int HDE::ListeningSocket::bindSocket(int sock, sockaddr_in address)

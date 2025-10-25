@@ -1,3 +1,4 @@
+
 #pragma once
 #pragma comment(lib, "Ws2_32.lib")
 #include <winsock2.h>
@@ -24,7 +25,7 @@ public:
 	SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface);
 
 
-	virtual int connectToNetwork(int sock, struct sockaddr_in address) = 0;
+	virtual void connectToNetwork(int sock, struct sockaddr_in address) = 0;
 	
 	// checks the socket file descriptor
 	void testConnection(const int &sock) const;

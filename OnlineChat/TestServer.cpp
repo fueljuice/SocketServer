@@ -14,7 +14,7 @@ void HDE::TestServer::launch()
             do {
 
                 iResult = recv(data.clientSocket,
-                    data.dataBuf.get(),
+                    data.dataBuf.get(), 
                     sizeof(data.dataBuf), 0);
 
                 if (iResult == 0)

@@ -134,6 +134,8 @@
     <ClCompile Include="SimpleSocket.cpp" />
     <ClCompile Include="SocketServer.cpp" />
     <ClCompile Include="TestServer.cpp" />
+    <ClCompile Include="UserClient.cpp" />
+    <ClCompile Include="UserClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientInterface.h" />

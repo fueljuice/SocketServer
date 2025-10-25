@@ -15,8 +15,10 @@ private:
 public:
 	ListeningSocket(int domain, int service, int protocol, int port, u_long network_interaface, int backlog);
 
-	int connectToNetwork(int sock, struct sockaddr_in address) override;
+	void connectToNetwork(int sock, struct sockaddr_in address) override;
+
 	int bindSocket(int sock, struct sockaddr_in address);
+
 	void startLisetning();
 
 };

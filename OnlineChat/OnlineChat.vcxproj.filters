@@ -39,6 +39,12 @@
     <ClCompile Include="FJProtocol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UserClient.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UserClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SimpleSocket.h">

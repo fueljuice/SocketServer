@@ -9,8 +9,8 @@ HDE::ConnectingSocket::ConnectingSocket(int domain, int service, int protocol, i
 };
 
 
-int HDE::ConnectingSocket::connectToNetwork(int sock, struct sockaddr_in address)
+void HDE::ConnectingSocket::connectToNetwork(int sock, struct sockaddr_in address)
 {
-	return connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+	connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 
 }
