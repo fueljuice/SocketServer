@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -127,14 +127,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FJProtocol.cpp" />
+    <ClCompile Include="ClientSocketData.cpp" />
+    <ClCompile Include="ClientSocketData.h" />
+    <ClCompile Include="ConnectingSocket.cpp" />
+    <ClCompile Include="ParsingProtocol.cpp" />
+    <ClCompile Include="ListeningSocket.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SimpleSocket.cpp" />
+    <ClCompile Include="SocketServer.cpp" />
+    <ClCompile Include="TestServer.cpp" />
     <ClCompile Include="UserClient.cpp" />
     <ClCompile Include="UserClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientInterface.h" />
-    <ClInclude Include="FJProtocol.h" />
+    <ClInclude Include="ConnectingSocket.h" />
+    <ClInclude Include="ParsingProtocol.h" />
+    <ClInclude Include="ListeningSocket.h" />
+    <ClInclude Include="SimpleSocket.h" />
+    <ClInclude Include="SocketServer.h" />
+    <ClInclude Include="TestServer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

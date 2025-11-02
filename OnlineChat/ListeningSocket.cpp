@@ -32,3 +32,19 @@ void HDE::ListeningSocket::startLisetning()
 {
 	listening = listen(getSock(), backlog);
 }
+
+void HDE::ListeningSocket::stopLisetning()
+{
+	int s = getSock();
+	if (s != INVALID_SOCKET)
+	{
+		closesocket(s);               
+		setSock(static_cast<int>(INVALID_SOCKET));
+	}
+}
+
+int HDE::ListeningSocket::acceptCon(sockaddr* address, int* addlen)
+{
+	int s = accept(getSock(), address, addlen);
+	return s;
+}

@@ -21,6 +21,11 @@ public:
 
 	void startLisetning();
 
+	void stopLisetning();
+
+	int acceptCon(sockaddr* address, int* addlen);
+
+
 };
 
 }

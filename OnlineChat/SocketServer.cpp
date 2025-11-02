@@ -9,6 +9,3 @@ HDE::SocketServer::SocketServer(int domain, int service,
 	std::cout << "init SocketServer" << std::endl;
 }
 
-
-//
-

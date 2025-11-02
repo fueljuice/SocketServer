@@ -1,12 +1,12 @@
 #pragma once
 #include "SocketServer.h"
-#include "FJProtocol.h"
+#include "ParsingProtocol.h"
+#include <iostream>
 #include <vector>
 #include <mutex>
 #include <thread>
-#include <stdlib.h>
-#include <cstring>
 #include <string>
+#include <fstream>
 
 //TODO: need to contsntily check if new messages arrived.
 // if it does send them to all current connections
@@ -16,46 +16,46 @@
 namespace HDE
 {
 
-
-
 class TestServer : public SocketServer
 {
 private:
-	enum action
-	{
-		GETCHAT = 1,
-		SENDMESSAGE = 2,
-		SETNAME = 3
-
-	};
-
-	std::mutex m;
-	std::vector<clientSocketData> clientVector;
+	std::atomic_bool running{ false };
+	std::thread threadPerClient;
+	std::fstream dbFile;
+	std::mutex sendMutex;
+	std::mutex clientVectorMutex;
+	std::mutex fileMutex;
+	std::vector< std::shared_ptr<ClientSocketData>> clientVector;
 
 
-	clientSocketData acceptConnection() override;
+	void acceptConnection() override;
 
-	void handleConnection();
+	void handleConnection(ClientSocketData client) override;
 
-	void responder();
+	void onClientAccept(ClientSocketData& client) override;
 
-	action handleClientData(const char* buffer, int dataLength);
+	void broadcast(const char* msgBuf, int msgLen) override;
+
+	void respondToClient(ClientSocketData& client, int readLength) override;
+
+	void handleClientData(ClientSocketData& client, int readLength);
+
+	void getChat(ClientSocketData& client, messaging::ParsedRequest pr);
+
+	void sendMessage(ClientSocketData& client, messaging::ParsedRequest pr);
+
+	bool sendAll(int s, const char* buf, int len);
+
 
 public:
 	void launch();
+	
+	~TestServer();
 
-
+	void stop() override;
 
 	TestServer(int domain, int service, int protocol,
-		int port, u_long network_interaface, int backlog) :
-
-		SocketServer(domain, service, protocol,
-		 port,  network_interaface, backlog) 
-	{
-		std::cout << "init TestServer" << std::endl;
-		launch();
-	}
-
+		int port, u_long network_interaface, int backlog);
 	
 };
 }

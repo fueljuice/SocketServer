@@ -10,6 +10,6 @@ int main()
 	//std::cout << "listen" << std::endl;
 	//HDE::ListeningSocket ls = HDE::ListeningSocket(AF_INET, SOCK_STREAM, 0, 8880, INADDR_ANY, 10);
 	//std::cout << "sucses" << std::endl;
-
-	HDE::TestServer tstserver(AF_INET, SOCK_STREAM, 0, 8880, INADDR_ANY, 10);
+//
+//	HDE::TestServer tstserver(AF_INET, SOCK_STREAM, 0, 8880, INADDR_ANY, 10);
 }
