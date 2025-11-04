@@ -7,24 +7,25 @@ HDE::TestServer::TestServer(int domain, int service, int protocol,
         port, network_interaface, backlog)
 {
     std::cout << "init TestServer" << std::endl;
+    // opens a handle to the file which is used as the database.
     dbFile.open(dbFileDir, std::ios::in | std::ios::out | std::ios::app);
 }
 
 void HDE::TestServer::launch()
 {
+    // changing the atomic member that represents the server running,  to true 
    running.store(true);
-   std::thread acceptorThread(&HDE::TestServer::acceptConnection, this);
-   acceptorThread.join();
-    
+   acceptConnection();
+
+
 
 }
-
-
 
 
 void HDE::TestServer::stop()
 {
     std::cout << "stopped server" << std::endl;
+    // stopping the atomic running member
     running.store(false);
     lstnSocket->stopLisetning();
 
@@ -33,6 +34,7 @@ void HDE::TestServer::stop()
 
 HDE::TestServer::~TestServer()
 {
+    // to avoid leaks, closing the file handle and stopping the serevr on destruction
     stop();
     if (dbFile.is_open())
         dbFile.close();
@@ -45,28 +47,39 @@ void HDE::TestServer::acceptConnection()
 
     sockaddr clientSock{};
     socklen_t addrLen;
-    int newSock;
+    SOCKET newSock;
     std::cout << "accepting..." << std::endl;
 
+    // running while the atomic member is true (on).
     while(running.load())
     {
         sockaddr clientSock{};
         addrLen = sizeof(clientSock);
+
+        // async function that waits for a client
         newSock = lstnSocket->acceptCon(
             reinterpret_cast<sockaddr*>(&clientSock),
             &addrLen);
-        std::cout << "done accept" << std::endl;
 
-        if (static_cast<SOCKET>(newSock) != INVALID_SOCKET)
+        std::cout << "done accept..." << std::endl;
+
+        // in the case of a legit socket
+        if (newSock != INVALID_SOCKET)
         {
             std::cout << "accepted valid socket" << std::endl;
-            auto sharedClient = std::make_shared<ClientSocketData>((newSock, clientSock, 5000));
+            ClientSocketData client(newSock, clientSock, 5000);
             {
+                // locking before pushing the socket of the client into the list of clients.
+                // the list is later used to brod
                 std::lock_guard<std::mutex> lk(clientVectorMutex);  
-                clientVector.push_back(sharedClient);
+                clientVector.push_back(client.h->socketHandle);
             }
-            onClientAccept(*sharedClient);
-            
+            onClientAccept(client);
+        
+        }
+        else
+        {
+            std::cout << "accpeted invalid socket" << std::endl;
         }
     }
 
@@ -87,6 +100,9 @@ void HDE::TestServer::onClientAccept(ClientSocketData& client)
 void HDE::TestServer::handleConnection(ClientSocketData client)
 {
     int iResult, totalrecv = 0, reqLength;
+    std::cout << "is client up?: " << client.clientSocket << std::endl;
+    bool isup = client.clientSocket == INVALID_SOCKET;
+    std::cout << "is client socket invalid? : " << isup << std::endl;
 
     // getting the length of the request before iterating
     iResult = recv(
@@ -95,29 +111,33 @@ void HDE::TestServer::handleConnection(ClientSocketData client)
         4,
         MSG_WAITALL
     );
+    printf("buf: %s\n", client.dataBuf.get());
 
     if (iResult != 4)
     {
-        std::cout << "couldnt read from client" << std::endl;
+        std::cout << "couldnt read length from client. bytes read: " << iResult << std::endl;
+        std::cout << "last problem: " << WSAGetLastError() << std::endl;
         return;
     }
 
     messaging::ParsingProtocol pq(client.dataBuf.get());
     reqLength = pq.getRequestLength(); // the length of the request
-
+    std::cout << "length: : " << reqLength << std::endl;
 
     // waiting until the entire meessage arrives using the length 
     // we got and the MSG_WAITALL flag
+    std::cout << "recving from client" << std::endl;
         iResult = recv(
         client.clientSocket,
         client.dataBuf.get(),
         reqLength,
         MSG_WAITALL
     );
-
+        std::cout << "done rcev" << std::endl;
+        
     if (iResult > 0)
     {
-        handleClientData(client, reqLength);
+        respondToClient(client, reqLength);
         printf("Bytes received: %d\n", iResult);
     }
 
@@ -130,9 +150,9 @@ void HDE::TestServer::handleConnection(ClientSocketData client)
 
 }
 
-void HDE::TestServer::handleClientData(ClientSocketData& client, int readLength)
+void HDE::TestServer::respondToClient(ClientSocketData& client, int readLength)
 {
-    
+
     const char* buffer = client.dataBuf.get();
     int bufLength = readLength;
     messaging::ParsingProtocol pq(buffer, bufLength);
@@ -172,6 +192,7 @@ void HDE::TestServer::handleClientData(ClientSocketData& client, int readLength)
 
 void HDE::TestServer::getChat(ClientSocketData& client, messaging::ParsedRequest pr)
 {
+    std::cout << "getChat request called" << std::endl;
     bool isSent;
     std::lock_guard<std::mutex> lk(fileMutex);
     if (!dbFile.is_open()) 
@@ -186,7 +207,7 @@ void HDE::TestServer::getChat(ClientSocketData& client, messaging::ParsedRequest
         std::istreambuf_iterator<char>(dbFile),
         std::istreambuf_iterator<char>()
     };
-    
+
     if (!dbFile.good() && !dbFile.eof())
     {
         std::cout << "can't read file" << std::endl;
@@ -205,26 +226,19 @@ void HDE::TestServer::getChat(ClientSocketData& client, messaging::ParsedRequest
     if (!isSent)
     {
         std::cout << "client socket unavaiable. cant send client" << std::endl;
+        // Move the lock_guard outside the erase call to ensure the lock is held during erase
         {
-            
-        std::lock_guard<std::mutex> lk(clientVectorMutex);
-        clientVector.erase(
-            std::remove_if(
-                clientVector.begin(),
-                clientVector.end(),
-                [&](const std::shared_ptr<ClientSocketData>& p) {
-                    return p && p->clientSocket == client.clientSocket; // compare sockets
-                }),
-            clientVector.end());
-            
+            auto rm = std::remove(clientVector.begin(), clientVector.end(), client.clientSocket);
+            std::lock_guard<std::mutex> lk(clientVectorMutex);
+            clientVector.erase(rm, clientVector.end());
         }
     }
 
-    
 }
 
 void HDE::TestServer::sendMessage(ClientSocketData& client, messaging::ParsedRequest pr)
 {
+    std::cout << "sendMessage request called" << std::endl;
     {
         std::lock_guard<std::mutex> lk(fileMutex);
         dbFile.clear();
@@ -238,19 +252,17 @@ void HDE::TestServer::sendMessage(ClientSocketData& client, messaging::ParsedReq
 
 
 
-
-
 void HDE::TestServer::broadcast(const char* msgBuf, int msgLen)
 {
     bool isSent;
     std::vector<SOCKET> deadClients;
-    std::vector<std::shared_ptr<ClientSocketData>> snapshot;
+    std::vector<SOCKET> snapShot;
     {
         std::lock_guard<std::mutex> lk(clientVectorMutex);
-        snapshot = clientVector;
+        snapShot = clientVector;
     }
 
-    for (const auto& client : snapshot)
+    for (const auto& clientSocket : snapShot)
     {
 
         if (!running.load())
@@ -258,7 +270,7 @@ void HDE::TestServer::broadcast(const char* msgBuf, int msgLen)
         {
             std::lock_guard<std::mutex> lk(sendMutex);
             isSent = sendAll(
-                client->clientSocket,
+                clientSocket,
                 msgBuf,
                 msgLen
             );
@@ -266,28 +278,23 @@ void HDE::TestServer::broadcast(const char* msgBuf, int msgLen)
 
         if (!isSent)
         {
-            deadClients.push_back(client->clientSocket);
+            deadClients.push_back(clientSocket);
         }
     }
 
     if (!deadClients.empty()) 
     {
-        std::lock_guard<std::mutex> lk(clientVectorMutex);
         // removing by socket all the dead clients ( with unavaiable sockets)
-        clientVector.erase(
-            std::remove_if(
-                clientVector.begin(),
-                clientVector.end(),
-                [&](const std::shared_ptr<ClientSocketData>& x)
-                {
-                    return std::find(deadClients.begin(), deadClients.end(), x->clientSocket) != deadClients.end();
-                }),
-            clientVector.end()
-        );
+        for (SOCKET deadClientSocket : deadClients)
+        {
+            auto rm = std::remove(clientVector.begin(), clientVector.end(), deadClientSocket);
+            std::lock_guard<std::mutex> lk(clientVectorMutex);
+            clientVector.erase(rm, clientVector.end());
+        }
     }
 }
 
-bool HDE::TestServer::sendAll(int s, const char* buf, int len)
+bool HDE::TestServer::sendAll(SOCKET s, const char* buf, int len)
 {
     int sent = 0;
     while (sent < len) {

@@ -25,6 +25,7 @@ namespace messaging
 
 	};
 
+
 	struct ParsedRequest
 	{
 		int dataSize;

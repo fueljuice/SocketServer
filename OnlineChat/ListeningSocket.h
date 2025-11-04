@@ -5,27 +5,28 @@
 namespace HDE
 {
 
-class ListeningSocket : public SimpleSocket
-{
+	class ListeningSocket : public SimpleSocket
+	{
+		public:
+			ListeningSocket(int domain, int service, int protocol, int port, u_long network_interaface, int backlog);
 
-private:
-	int backlog;
-	int listening;
+			void connectToNetwork(SOCKET sock, struct sockaddr_in address) override;
 
-public:
-	ListeningSocket(int domain, int service, int protocol, int port, u_long network_interaface, int backlog);
+			SOCKET bindSocket(SOCKET sock, struct sockaddr_in address);
 
-	void connectToNetwork(int sock, struct sockaddr_in address) override;
+			void startLisetning();
 
-	int bindSocket(int sock, struct sockaddr_in address);
+			void stopLisetning();
 
-	void startLisetning();
-
-	void stopLisetning();
-
-	int acceptCon(sockaddr* address, int* addlen);
+			SOCKET acceptCon(sockaddr* address, int* addlen);
 
 
-};
+
+		private:
+			int backlog;
+			int listening;
+	};
+		
+
 
 }

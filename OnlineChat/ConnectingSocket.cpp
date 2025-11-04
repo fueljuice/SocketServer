@@ -5,10 +5,10 @@ HDE::ConnectingSocket::ConnectingSocket(int domain, int service, int protocol, i
 {
 	connectToNetwork(getSock(), getAddress());
 	testConnection(getSock());
-};
+}
 
 
-void HDE::ConnectingSocket::connectToNetwork(int sock, struct sockaddr_in address)
+void HDE::ConnectingSocket::connectToNetwork(SOCKET sock, struct sockaddr_in address)
 {
 	connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 

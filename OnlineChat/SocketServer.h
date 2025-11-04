@@ -6,40 +6,41 @@ namespace HDE
 {
 
 
-class SocketServer
-{
+	class SocketServer
+	{
 
-private:
-	virtual void acceptConnection() = 0;
-
-	virtual void onClientAccept(ClientSocketData& client) = 0;
-
-	virtual void handleConnection(ClientSocketData client) = 0;
-
-	virtual void respondToClient(ClientSocketData& client, int readLength) = 0;
-
-	virtual void broadcast(const char* msgBuf, int msgLen) = 0;
+		public:
+			SocketServer(int domain, int service, int protocol,
+				int port, u_long network_interaface, int backlog);
 
 
-protected:
-	std::unique_ptr<ListeningSocket> lstnSocket;
+			//virtual void launch();
+
+			//virtual void stop();
 
 
-public:
-	SocketServer(int domain, int service, int protocol, 
-		int port, u_long network_interaface, int backlog);
+			// rule of three
+			virtual ~SocketServer() = default;
+			SocketServer(const SocketServer&) = delete;  // unique_ptr  noncopyable
+			SocketServer& operator=(const SocketServer&) = delete;
 
 
-	void launch();
-
-	virtual void stop();
-
-	
-	// rule of three
-	virtual ~SocketServer() = default;
-	SocketServer(const SocketServer&) = delete;  // unique_ptr  noncopyable
-	SocketServer& operator=(const SocketServer&) = delete;
+		protected:
+			std::unique_ptr<ListeningSocket> lstnSocket;
 
 
-};
+		private:
+			virtual void acceptConnection() = 0;
+
+			virtual void onClientAccept(ClientSocketData& client) = 0;
+
+			virtual void handleConnection(ClientSocketData client) = 0;
+
+			virtual void respondToClient(ClientSocketData& client, int readLength) = 0;
+
+			virtual void broadcast(const char* msgBuf, int msgLen) = 0;
+
+
+
+	};
 }

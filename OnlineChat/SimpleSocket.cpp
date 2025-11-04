@@ -17,7 +17,7 @@ HDE::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port,
 		
 }
 
-void HDE::SimpleSocket::testConnection(const int &sock) const
+void HDE::SimpleSocket::testConnection(const SOCKET &sock) const
 {
 	if (sock < 0)
 	{
@@ -46,7 +46,7 @@ struct sockaddr_in HDE::SimpleSocket::getAddress() const
 }
 
 
-int HDE::SimpleSocket::getSock() const
+SOCKET HDE::SimpleSocket::getSock() const
 {
 	return sock;
 }
@@ -58,7 +58,7 @@ void HDE::SimpleSocket::setAddress(const struct sockaddr_in &address)
 	this->address = address;
 }
 
-void HDE::SimpleSocket::setSock(const int &sock)
+void HDE::SimpleSocket::setSock(const SOCKET &sock)
 {
 	this->sock = sock;
 }

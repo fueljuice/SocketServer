@@ -8,39 +8,42 @@
 namespace HDE
 {
 
-class SimpleSocket
-{
-private:
-	WSADATA wsa;
-	struct sockaddr_in address;
-	int sock;
+	class SimpleSocket
+	{
+	public:
+
+		SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface);
+
+
+		virtual void connectToNetwork(SOCKET sock, struct sockaddr_in address) = 0;
+
+		// checks the socket file descriptor
+		void testConnection(const SOCKET& sock) const;
+
+		//getter
+		struct sockaddr_in getAddress() const;
+		SOCKET getSock() const;
+
+		//setter
+		void setAddress(const struct sockaddr_in& add);
+		void setSock(const SOCKET& sock);
+
+		virtual ~SimpleSocket();
+
+
+	private:
+		WSADATA wsa;
+		struct sockaddr_in address;
+		SOCKET sock;
 
 
 
-	// setup WSA and raise error if fail
-	void initWSA();
+		// setup WSA and raise error if fail
+		void initWSA();
 	
-public:
 
-	SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface);
-
-
-	virtual void connectToNetwork(int sock, struct sockaddr_in address) = 0;
 	
-	// checks the socket file descriptor
-	void testConnection(const int &sock) const;
-
-	//getter
-	struct sockaddr_in getAddress() const;
-	int getSock() const;
-
-	//setter
-	void setAddress(const struct sockaddr_in &add);
-	void setSock(const int& sock);
-
-	virtual ~SimpleSocket();
-	
-};
+	};
 
 
 

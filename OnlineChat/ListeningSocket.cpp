@@ -9,7 +9,7 @@ HDE::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int
 	connectToNetwork(getSock(), getAddress());
 }
 
-void HDE::ListeningSocket::connectToNetwork(int sock, sockaddr_in address)
+void HDE::ListeningSocket::connectToNetwork(SOCKET sock, sockaddr_in address)
 {
 	bindSocket(sock, address);
 	//testing binding
@@ -23,7 +23,7 @@ void HDE::ListeningSocket::connectToNetwork(int sock, sockaddr_in address)
 
 }
 
-int HDE::ListeningSocket::bindSocket(int sock, sockaddr_in address)
+SOCKET HDE::ListeningSocket::bindSocket(SOCKET sock, sockaddr_in address)
 {
 	return bind(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 }
@@ -35,16 +35,17 @@ void HDE::ListeningSocket::startLisetning()
 
 void HDE::ListeningSocket::stopLisetning()
 {
-	int s = getSock();
+	SOCKET s = getSock();
 	if (s != INVALID_SOCKET)
 	{
+		std::cout << "closing socket in ListeningSocket class" << std::endl;
 		closesocket(s);               
-		setSock(static_cast<int>(INVALID_SOCKET));
+		setSock((INVALID_SOCKET));
 	}
 }
 
-int HDE::ListeningSocket::acceptCon(sockaddr* address, int* addlen)
+SOCKET HDE::ListeningSocket::acceptCon(sockaddr* address, int* addlen)
 {
-	int s = accept(getSock(), address, addlen);
+	SOCKET s = accept(getSock(), address, addlen);
 	return s;
 }
