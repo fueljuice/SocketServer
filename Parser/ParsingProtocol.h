@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
-
+#include <cstdio>
 //PROTOCOL:
 // FIRST FOUR BYTES: INTEGER LENGTH OF THE DATA
 // BYTE NUMBER 4-8:
@@ -49,9 +49,11 @@ namespace messaging
 		void extractData();
 
 	public:
-		ParsingProtocol(const char* rawbuf, int rawlength);
+		ParsingProtocol(const char* rawBuf, int rawLength);
 
-		ParsingProtocol(const char* lenbuf);
+		ParsingProtocol(const char* rawBuf, int rawLength, int msgLength);
+
+		ParsingProtocol(const char* lenBuf);
 
 		int getRequestLength();
 

@@ -128,7 +128,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ClientSocketData.cpp" />
-    <ClCompile Include="ClientSocketData.h" />
     <ClCompile Include="ConnectingSocket.cpp" />
     <ClCompile Include="ParsingProtocol.cpp" />
     <ClCompile Include="ListeningSocket.cpp" />
@@ -140,7 +139,7 @@
     <ClCompile Include="UserClient.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientInterface.h" />
+    <ClInclude Include="Client\ClientInterface.h" />
     <ClInclude Include="ConnectingSocket.h" />
     <ClInclude Include="ParsingProtocol.h" />
     <ClInclude Include="ListeningSocket.h" />

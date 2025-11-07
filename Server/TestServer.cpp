@@ -119,9 +119,10 @@ void HDE::TestServer::handleConnection(ClientSocketData client)
         std::cout << "last problem: " << WSAGetLastError() << std::endl;
         return;
     }
+    std::cout << "calling pp " << std::endl;
 
-    messaging::ParsingProtocol pq(client.dataBuf.get());
-    reqLength = pq.getRequestLength(); // the length of the request
+    messaging::ParsingProtocol pp(client.dataBuf.get());
+    reqLength = pp.getRequestLength(); // the length of the request
     std::cout << "length: : " << reqLength << std::endl;
 
     // waiting until the entire meessage arrives using the length 
@@ -143,7 +144,7 @@ void HDE::TestServer::handleConnection(ClientSocketData client)
 
     else if (iResult == 0)
     {
-        printf("Connection closed\n");
+        printf("Connection closed recv 0\n");
     }
     else
         printf("recv failed: %d\n", WSAGetLastError());
@@ -154,9 +155,10 @@ void HDE::TestServer::respondToClient(ClientSocketData& client, int readLength)
 {
 
     const char* buffer = client.dataBuf.get();
-    int bufLength = readLength;
-    messaging::ParsingProtocol pq(buffer, bufLength);
-    messaging::ParsedRequest pr = pq.enforceProtocol();
+    size_t bufLength = strlen(buffer);
+    std::cout << "responding to client..." << std::endl;
+    messaging::ParsingProtocol pp(buffer, bufLength, readLength);
+    messaging::ParsedRequest pr = pp.enforceProtocol();
 
     if (pr.statusCode == 404)
     {

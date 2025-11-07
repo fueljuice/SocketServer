@@ -41,7 +41,8 @@ namespace HDE
 
 		void acceptConnection() override;
 
-		void handleConnection(ClientSocketData client) override;
+		void handleConnection(ClientSocketData
+			  client) override;
 
 		void onClientAccept(ClientSocketData& client) override;
 
