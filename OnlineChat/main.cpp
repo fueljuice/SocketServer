@@ -4,7 +4,7 @@
 #include <ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 
-#include "TestServer.h"   // your header that declares HDE::TestServer
+#include "./Server/TestServer.h"   // your header that declares HDE::TestServer
 
 int main(int argc, char** argv)
 {

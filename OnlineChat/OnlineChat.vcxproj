@@ -128,24 +128,24 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ClientSocketData.cpp" />
-    <ClCompile Include="ConnectingSocket.cpp" />
-    <ClCompile Include="ParsingProtocol.cpp" />
-    <ClCompile Include="ListeningSocket.cpp" />
+    <ClCompile Include="Client\UserClient.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="SimpleSocket.cpp" />
-    <ClCompile Include="SocketServer.cpp" />
-    <ClCompile Include="TestServer.cpp" />
-    <ClCompile Include="UserClient.cpp" />
-    <ClCompile Include="UserClient.h" />
+    <ClCompile Include="Parser\ParsingProtocol.cpp" />
+    <ClCompile Include="Server\SocketServer.cpp" />
+    <ClCompile Include="Server\TestServer.cpp" />
+    <ClCompile Include="Sockets\ConnectingSocket.cpp" />
+    <ClCompile Include="Sockets\ListeningSocket.cpp" />
+    <ClCompile Include="Sockets\SimpleSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\ClientInterface.h" />
-    <ClInclude Include="ConnectingSocket.h" />
-    <ClInclude Include="ParsingProtocol.h" />
-    <ClInclude Include="ListeningSocket.h" />
-    <ClInclude Include="SimpleSocket.h" />
-    <ClInclude Include="SocketServer.h" />
-    <ClInclude Include="TestServer.h" />
+    <ClInclude Include="Client\UserClient.h" />
+    <ClInclude Include="Parser\ParsingProtocol.h" />
+    <ClInclude Include="Server\SocketServer.h" />
+    <ClInclude Include="Server\TestServer.h" />
+    <ClInclude Include="Sockets\ConnectingSocket.h" />
+    <ClInclude Include="Sockets\ListeningSocket.h" />
+    <ClInclude Include="Sockets\SimpleSocket.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,5 @@
 #pragma once
-#include "/ConnectingSocket.h"
+#include "../Sockets/ConnectingSocket.h"
 
 class ClientInterface : public HDE::ConnectingSocket
 {

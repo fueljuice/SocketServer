@@ -1,6 +1,6 @@
 #pragma once
-#include "ListeningSocket.h"
-#include "clientSocketData.h"
+#include "../Sockets/ListeningSocket.h"
+#include "../clientSocketData.h"
 
 namespace HDE
 {
