@@ -31,15 +31,41 @@ namespace messaging
 		int dataSize;
 		action requestType;
 		unsigned int statusCode;
-		char* databuffer;
+		char* databuffer = { 0 };
+
+		ParsedRequest()
+			:
+			dataSize(0),
+			requestType(INVALIDACTION),
+			statusCode(404)
+		{}
+
+		ParsedRequest(ParsedRequest&& other) noexcept
+			: 
+			dataSize(other.dataSize),
+			requestType(other.requestType),
+			statusCode(other.statusCode),
+			databuffer(other.databuffer)
+		{
+			other.dataSize = 0;
+			other.databuffer = nullptr;
+		}
+
+		~ParsedRequest()
+		{
+			if (databuffer != nullptr)
+				delete databuffer;
+		};
 	};
 
 	class ParsingProtocol
 	{
 	private:
 		const char* rawRequest;
-		const int rawRequestLength;
+		const unsigned int rawRequestLength;
 		ParsedRequest pr;
+		unsigned int headerLength;
+		
 
 
 		void extractLength();
@@ -51,9 +77,7 @@ namespace messaging
 	public:
 		ParsingProtocol(const char* rawBuf, int rawLength);
 
-		ParsingProtocol(const char* rawBuf, int rawLength, int msgLength);
-
-		ParsingProtocol(const char* lenBuf);
+		ParsingProtocol(messaging::ParsedRequest& otherPr, const char* rawBuf, int rawLength);
 
 		int getRequestLength();
 

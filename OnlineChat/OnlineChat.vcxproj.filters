@@ -33,15 +33,6 @@
     <ClCompile Include="Server\TestServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SocketsA\ConnectingSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SocketsA\ListeningSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SocketsA\SimpleSocket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Sockets\ConnectingSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,15 +57,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Server\TestServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SocketsA\ConnectingSocket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SocketsA\ListeningSocket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SocketsA\SimpleSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Sockets\ConnectingSocket.h">

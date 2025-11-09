@@ -30,13 +30,11 @@ namespace HDE
 
 
 		private:
-			virtual void acceptConnection() = 0;
+			//virtual void acceptConnection() = 0;
 
-			virtual void onClientAccept(ClientSocketData& client) = 0;
+			//virtual void handleConnection(ClientSocketData client) = 0;
 
-			virtual void handleConnection(ClientSocketData client) = 0;
-
-			virtual void respondToClient(ClientSocketData& client, int readLength) = 0;
+			//virtual void respondToClient(ClientSocketData& client, int readLength) = 0;
 
 			virtual void broadcast(const char* msgBuf, int msgLen) = 0;
 

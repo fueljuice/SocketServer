@@ -9,25 +9,20 @@ namespace HDE
 
 	struct ClientSocketData
 	{
-		struct Handle
-		{
-			SOCKET socketHandle = INVALID_SOCKET;
-		};
 
 		SOCKET clientSocket;
 		struct sockaddr clientAddr;
-		std::unique_ptr<char[]> dataBuf;
-		std::shared_ptr<Handle> h;
+		std::shared_ptr<char[]> dataBuf;
 		unsigned int lenData;
+
 		explicit ClientSocketData(SOCKET socket, sockaddr clientAddr, unsigned int length);
 
-		// deleteing copy constructor to avoid copying the unique ptr
-		ClientSocketData(const ClientSocketData&) = delete;
-		ClientSocketData& operator=(const ClientSocketData&) = delete;
+		ClientSocketData(const ClientSocketData&) = default;
+		ClientSocketData& operator=(const ClientSocketData&) = default;
 
 
 		// enabling std::move
-		ClientSocketData(ClientSocketData&&) noexcept;
+		ClientSocketData(ClientSocketData&&) noexcept = default;
 		ClientSocketData& operator=(ClientSocketData&&) noexcept = default;
 		// == opreator
 		//bool operator==(const ClientSocketData& other);
@@ -35,7 +30,7 @@ namespace HDE
 		
 
 
-		~ClientSocketData();
+		~ClientSocketData() = default;
 
 		
 	};

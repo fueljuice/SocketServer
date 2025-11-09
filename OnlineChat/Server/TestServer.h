@@ -12,7 +12,6 @@
 
 
 
-
 namespace HDE
 {
 
@@ -33,28 +32,34 @@ namespace HDE
 		std::atomic_bool running{ false };
 		std::thread threadPerClient;
 		std::fstream dbFile;
+
+
 		std::mutex sendMutex;
 		std::mutex clientVectorMutex;
 		std::mutex fileMutex;
-		std::vector<SOCKET> clientVector;
 
 
-		void acceptConnection() override;
+		std::vector<std::thread> clientThreads;
+		std::vector<std::shared_ptr<ClientSocketData>> clientVector;
 
-		void handleConnection(ClientSocketData
-			  client) override;
 
-		void onClientAccept(ClientSocketData& client) override;
+		void acceptConnection();
+
+		void handleConnection(std::shared_ptr<ClientSocketData> client);
+
+		void onClientAccept(std::shared_ptr<ClientSocketData> client);
 
 		void broadcast(const char* msgBuf, int msgLen) override;
 
-		void respondToClient(ClientSocketData& client, int readLength) override;
+		void respondToClient(std::shared_ptr<ClientSocketData> client, messaging::ParsedRequest& pr);
 
-		void getChat(ClientSocketData& client, messaging::ParsedRequest pr);
+		void getChat(std::shared_ptr<ClientSocketData> client, messaging::ParsedRequest& pr);
 
-		void sendMessage(ClientSocketData& client, messaging::ParsedRequest pr);
+		void sendMessage(std::shared_ptr<ClientSocketData> client, messaging::ParsedRequest& pr);
 
 		bool sendAll(SOCKET s, const char* buf, int len);
+
+		void removeDeadClient(SOCKET s);
 
 	
 	};
