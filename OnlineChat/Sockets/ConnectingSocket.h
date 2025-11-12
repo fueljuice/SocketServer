@@ -2,7 +2,7 @@
 
 #include "SimpleSocket.h"
 
-namespace HDE
+namespace sockets
 {
 
 

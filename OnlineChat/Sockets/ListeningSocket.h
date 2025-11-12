@@ -2,17 +2,15 @@
 
 #include "SimpleSocket.h"
 
-namespace HDE
+namespace sockets
 {
 
 	class ListeningSocket : public SimpleSocket
 	{
+		// inherits from the simple socket class.
+		// a listening socket that is made to be used as the server's socket
 		public:
 			ListeningSocket(int domain, int service, int protocol, int port, u_long network_interaface, int backlog);
-
-			void connectToNetwork(SOCKET sock, struct sockaddr_in address) override;
-
-			SOCKET bindSocket(SOCKET sock, struct sockaddr_in address);
 
 			void startLisetning();
 
@@ -23,6 +21,12 @@ namespace HDE
 
 
 		private:
+			// implements the abstract function
+			void connectToNetwork(SOCKET sock, struct sockaddr_in address) override;
+
+
+			SOCKET bindSocket(SOCKET sock, struct sockaddr_in address);
+
 			int backlog;
 			int listening;
 	};

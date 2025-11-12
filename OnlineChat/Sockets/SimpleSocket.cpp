@@ -1,23 +1,29 @@
 
 #include "SimpleSocket.h"
 
-
-HDE::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface)
+// init the socket with the settings provided to the constructor
+sockets::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface)
 {
 	std::cout << "initiating socket..." << std::endl;
+	// init WSA
 	initWSA();
+
+	// port domain and interface
 	address.sin_family = domain;
 	address.sin_port = htons(port);
 	address.sin_addr.s_addr = htonl(network_interaface);
+
+	// gets the socket file descriptor from the os
 	sock = socket(domain, service, protocol);
 	std::cout << sock << std::endl;
+
 	testConnection(sock);
 	std::cout << "sucsessful socket init" << std::endl;
 	
 		
 }
-
-void HDE::SimpleSocket::testConnection(const SOCKET &sock) const
+// exits if failed to make a valid socket
+void sockets::SimpleSocket::testConnection(const SOCKET &sock) const
 {
 	if (sock < 0)
 	{
@@ -28,7 +34,9 @@ void HDE::SimpleSocket::testConnection(const SOCKET &sock) const
 	}
 }
 
-void HDE::SimpleSocket::initWSA()
+
+// simply initWSA
+void sockets::SimpleSocket::initWSA()
 {
 	if (WSAStartup(MAKEWORD(2, 2), &(this->wsa)) != 0)
 	{
@@ -40,30 +48,32 @@ void HDE::SimpleSocket::initWSA()
 	std::cout << "WSA sucsess " << std::endl;
 }
 
-struct sockaddr_in HDE::SimpleSocket::getAddress() const
+// setters
+struct sockaddr_in sockets::SimpleSocket::getAddress() const
 {
 	return address;
 }
 
 
-SOCKET HDE::SimpleSocket::getSock() const
+SOCKET sockets::SimpleSocket::getSock() const
 {
 	return sock;
 }
 
 
-
-void HDE::SimpleSocket::setAddress(const struct sockaddr_in &address)
+// getters 
+void sockets::SimpleSocket::setAddress(const struct sockaddr_in &address)
 {
 	this->address = address;
 }
 
-void HDE::SimpleSocket::setSock(const SOCKET &sock)
+void sockets::SimpleSocket::setSock(const SOCKET &sock)
 {
 	this->sock = sock;
 }
 
-HDE::SimpleSocket::~SimpleSocket()
+// calls wsa cleanup and closes the socket
+sockets::SimpleSocket::~SimpleSocket()
 {
 	std::cout << "destructing wsa and the socket" << std::endl;
 	closesocket(sock);

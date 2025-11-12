@@ -1,62 +1,40 @@
 #pragma once
+
+
 #include <iostream>
 #include <stdlib.h>
 #include <string>
 #include <cstdio>
-//PROTOCOL:
-// FIRST FOUR BYTES: INTEGER LENGTH OF THE DATA
-// BYTE NUMBER 4-8:
-// ENUM ACTION:
-// 1: GETCHAT
-// 2: SENDMESSAGE
-// IF GETCHAT: NO BYTES ARE READ
-// IF SENDMESSAGE: CONSIDER BYTE 8 - rawRequestLength THE MESSAGE
-//
-//
+#include "parsedRequest.h"
+
+
+/*
+ 
+-------PROTOCOL---------:
+
+there are 2 types of requests getChat adn sendMessage.
+
+getChat: returns the entire file content. doesnt need data and the datalength should be 0
+and the request type shuld be 1
+
+sendMessage: uploads a message into the file. the data should be the message itself and datalength should be 
+the message length. and the request should be 2
+
+the data length should be the first 0 - 4 bytes.
+
+the request type should be from 4 - 8 bytes
+
+the data should be the rest of the buffer.
+
+
+
+*/
+
+
 
 namespace messaging
 {
 
-	enum action : int
-	{
-		INVALIDACTION = -1,
-		GETCHAT = 1,
-		SENDMESSAGE = 2,
-
-	};
-
-
-	struct ParsedRequest
-	{
-		int dataSize;
-		action requestType;
-		unsigned int statusCode;
-		char* databuffer = { 0 };
-
-		ParsedRequest()
-			:
-			dataSize(0),
-			requestType(INVALIDACTION),
-			statusCode(404)
-		{}
-
-		ParsedRequest(ParsedRequest&& other) noexcept
-			: 
-			dataSize(other.dataSize),
-			requestType(other.requestType),
-			statusCode(other.statusCode),
-			databuffer(other.databuffer)
-		{
-			other.dataSize = 0;
-			other.databuffer = nullptr;
-		}
-
-		~ParsedRequest()
-		{
-			if (databuffer != nullptr)
-				delete databuffer;
-		};
-	};
 
 	class ParsingProtocol
 	{

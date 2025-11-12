@@ -1,7 +1,7 @@
 #pragma once
 #include "../Sockets/ConnectingSocket.h"
 
-class ClientInterface : public HDE::ConnectingSocket
+class ClientInterface : public sockets::ConnectingSocket
 {
 public:
 	virtual ~ClientInterface() = 0;

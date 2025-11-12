@@ -1,44 +1,39 @@
 #pragma once
 #include "../Sockets/ListeningSocket.h"
-#include "../clientSocketData.h"
 
-namespace HDE
+namespace sockets::server
 {
 
 
+	
 	class SocketServer
 	{
 
-		public:
-			SocketServer(int domain, int service, int protocol,
-				int port, u_long network_interaface, int backlog);
+	public:
+		SocketServer(int domain, int service, int protocol,
+			int port, u_long network_interaface, int backlog);
 
 
-			//virtual void launch();
+		//  derived class must have provide launching and stopping functions
 
-			//virtual void stop();
+		virtual void launch() = 0;
 
-
-			// rule of three
-			virtual ~SocketServer() = default;
-			SocketServer(const SocketServer&) = delete;  // unique_ptr  noncopyable
-			SocketServer& operator=(const SocketServer&) = delete;
+		virtual void stop() = 0;
 
 
-		protected:
-			std::unique_ptr<ListeningSocket> lstnSocket;
+		// rule of three
+		virtual ~SocketServer() = default;
+		SocketServer(const SocketServer&) = delete;  // unique_ptr noncopyable
+		SocketServer& operator=(const SocketServer&) = delete;
 
 
-		private:
-			//virtual void acceptConnection() = 0;
-
-			//virtual void handleConnection(ClientSocketData client) = 0;
-
-			//virtual void respondToClient(ClientSocketData& client, int readLength) = 0;
-
-			virtual void broadcast(const char* msgBuf, int msgLen) = 0;
-
-
+	protected:
+		// a listening socket member to handle the listening accepting and closing of the server socket
+		std::unique_ptr<ListeningSocket> lstnSocket;
 
 	};
+
+
+
+	
 }

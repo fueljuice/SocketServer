@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
     try 
     {
-        HDE::TestServer server(AF_INET, SOCK_STREAM, IPPROTO_TCP, port, INADDR_ANY, SOMAXCONN);
+        sockets::server::TestServer server(AF_INET, SOCK_STREAM, IPPROTO_TCP, port, INADDR_ANY, SOMAXCONN);
 
         std::cout << "Starting TestServer on port " << port << "...\n";
         server.launch();

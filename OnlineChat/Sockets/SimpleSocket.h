@@ -5,36 +5,43 @@
 #include <ws2tcpip.h>
 #include <cstdio>
 #include <iostream>
-namespace HDE
+namespace sockets
 {
 
 	class SimpleSocket
 	{
-	public:
 
-		SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface);
-
-
-		virtual void connectToNetwork(SOCKET sock, struct sockaddr_in address) = 0;
-
-		// checks the socket file descriptor
-		void testConnection(const SOCKET& sock) const;
-
-		//getter
-		struct sockaddr_in getAddress() const;
-		SOCKET getSock() const;
-
-		//setter
-		void setAddress(const struct sockaddr_in& add);
-		void setSock(const SOCKET& sock);
-
-		virtual ~SimpleSocket();
+		public:
+			// the simplesocket class goal is to 
+			// set up the socket basic low level settings: domain service protocol port and interface
+			SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface);
 
 
-	private:
-		WSADATA wsa;
-		struct sockaddr_in address;
-		SOCKET sock;
+			//getters
+			struct sockaddr_in getAddress() const;
+			SOCKET getSock() const;
+
+			//setters
+			void setAddress(const struct sockaddr_in& add);
+			void setSock(const SOCKET& sock);
+
+			// virtual so that every sucsessor will call this aswell
+			virtual ~SimpleSocket();
+
+
+		protected:
+			// should only be used in derived class initalizor functions to test the connection
+			void testConnection(const SOCKET& sock) const;
+
+
+		private:
+			// all its sucsessors must provide a way of connecting to the network
+			virtual void connectToNetwork(SOCKET sock, struct sockaddr_in address) = 0;
+
+
+			WSADATA wsa;
+			struct sockaddr_in address;
+			SOCKET sock;
 
 
 

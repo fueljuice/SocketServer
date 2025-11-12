@@ -129,9 +129,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ClientSocketData.cpp" />
+    <ClCompile Include="Server\data\ClientSocketData.cpp" />
     <ClCompile Include="Client\UserClient.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Parser\ParsedRequest.cpp" />
     <ClCompile Include="Parser\ParsingProtocol.cpp" />
     <ClCompile Include="Server\SocketServer.cpp" />
     <ClCompile Include="Server\TestServer.cpp" />
@@ -142,6 +143,7 @@
   <ItemGroup>
     <ClInclude Include="Client\ClientInterface.h" />
     <ClInclude Include="Client\UserClient.h" />
+    <ClInclude Include="Parser\ParsedRequest.h" />
     <ClInclude Include="Parser\ParsingProtocol.h" />
     <ClInclude Include="Server\SocketServer.h" />
     <ClInclude Include="Server\TestServer.h" />
