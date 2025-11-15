@@ -34,7 +34,13 @@ void Client::UserClient::sendPacket(const char* msg, u_int requestType)
 
 	case 2:
 	{
-		sendMessage(strlen(msg), msg, requestType);
+		if (!msg) 
+		{
+			std::cerr << "message cant be null with sendmessage request" << std::endl;
+			return;
+		}
+
+		sendMessage(static_cast<u_int>(strlen(msg)), msg, requestType);
 		break;
 	}
 

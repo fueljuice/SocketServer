@@ -3,6 +3,8 @@
 
 #define dbFileDir   "C:\\Users\\zohar\\Desktop\\dbFile.txt"
 #define INTSIZE     4
+#define MAXBYTES    9999
+
 
 // constructor that init the base server
 sockets::server::Server::Server(int domain, int service, int protocol,
@@ -98,7 +100,7 @@ void sockets::server::Server::acceptConnection()
         if (newSock != INVALID_SOCKET)
         {
             std::cout << "accepted valid socket" << std::endl;
-            auto clientPtr = std::make_shared<data::ClientSocketData>(newSock, clientAddr, 5000);
+            auto clientPtr = std::make_shared<data::ClientSocketData>(newSock, clientAddr, MAXBYTES);
             {
                 // locking before pushing the socket of the client into the list of clients.
                 // the list is later used to brod
