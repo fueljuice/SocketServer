@@ -16,13 +16,16 @@ Client::UserClient::UserClient(int domain, int service, int protocol, int port, 
 }
 
 
-// requestType: getchat = 1, sendmessage = 2
+// determines which request user wanted to use
 void Client::UserClient::sendPacket(const char* msg, u_int requestType)
 {
 	DBG("sending");
-
+	
+	// switching request type
 	switch (requestType)
 	{
+
+	// requestType: getchat = 1, sendmessage = 2
 	case 1:
 	{
 		getChat(requestType);
@@ -52,6 +55,7 @@ void Client::UserClient::sendPacket(const char* msg, u_int requestType)
 
 }
 
+// recving the answer from the server
 std::string Client::UserClient::recievePacket()
 {
 	int intLength, bytesRead;
@@ -100,6 +104,7 @@ std::string Client::UserClient::recievePacket()
 
 }
 
+// sendmessage request. sends a message to the server text file
 void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int requestType)
 {
 	DBG("send msg request");
@@ -111,9 +116,6 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 		return;
 	}
 
-
-
-
 	constexpr size_t HEADER_SIZE = 2 * INTSIZE; // 8 bytes for header
 
 	// header + message length
@@ -123,7 +125,7 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 	char* payload = new char[payloadLength];
 
 
-	// write header (8 bytes + null terminator for sprintf_s)
+	// write header (8 bytes  for sprintf_s)
 	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", INTSIZE, msgLength, INTSIZE, requestType);
 
 	// copy header to payload
@@ -138,18 +140,18 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 	delete[] payload;
 }
 
-
+// requests the entire content for the text file from the server
 void Client::UserClient::getChat(u_int requestType)
 {
 	DBG("get chat request");
 
-	// header + null byte
+	// header 
 	constexpr size_t HEADER_SIZE = 2 * INTSIZE; // 8 bytes for header
 	size_t payloadLength = HEADER_SIZE;
 
 	char* payload = new char[payloadLength];
 
-	// write header (8 bytes + null terminator for sprintf_s)
+	// write header (8 bytes  for sprintf_s)
 	char headerBuf[HEADER_SIZE + 1] = { 0 };
 	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", INTSIZE, 0, INTSIZE, requestType);
 
