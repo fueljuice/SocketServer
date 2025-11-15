@@ -11,7 +11,7 @@
 #include <ws2tcpip.h>
 
 
-int main()
+int Clientmain()
 {
     std::cout << "starting client..." << std::endl;
 

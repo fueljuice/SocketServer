@@ -3,7 +3,7 @@
 
 #define INTSIZE		4
 #ifdef PR_DEBUG
-#define DBG(X) std::cout << x << std::endl
+#define DBG(X) std::cout << X << std::endl
 #else
 #define DBG(X)
 #endif
@@ -177,4 +177,5 @@ bool Client::UserClient::sendAll(SOCKET s, char* buf, u_int len)
 			return false;
 		sent += r;
 	}
+	return true;
 }
