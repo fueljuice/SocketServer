@@ -56,8 +56,6 @@ namespace messaging
 
 		ParsingProtocol(messaging::ParsedRequest otherPr, const char* rawBuf, int rawLength);
 
-		int getRequestLength();
-
 		ParsedRequest parseHeader();
 
 		ParsedRequest parseData();

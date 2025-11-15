@@ -337,6 +337,7 @@ void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData
 // broadcasts message to all active clients 
 void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
 {
+    std::cout << " broadcasting" << std::endl;
     bool isSent;
     std::vector<SOCKET> deadClients;
     {
@@ -361,6 +362,7 @@ void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
                 deadClients.push_back(client.get()->clientSocket);
             }
         }
+        std::cout << "ended broadcast " << std::endl;
     }
 
 
@@ -401,6 +403,7 @@ bool sockets::server::Server::sendAll(SOCKET s, const char* buf, int len)
 // deletes a client from the client vector of all active clients
 void sockets::server::Server::removeDeadClient(SOCKET s) 
 {
+    std::cout << "removing dead client" << std::endl;
     std::lock_guard<std::mutex> lk(clientVectorMutex);
     std::erase_if(
         clientVector,

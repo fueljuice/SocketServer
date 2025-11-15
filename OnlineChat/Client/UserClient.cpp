@@ -116,8 +116,8 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 
 	constexpr size_t HEADER_SIZE = 2 * INTSIZE; // 8 bytes for header
 
-	// header + message length + null byte
-	size_t payloadLength = HEADER_SIZE + msgLength + 1;
+	// header + message length
+	size_t payloadLength = HEADER_SIZE + msgLength;
 
 	char headerBuf[HEADER_SIZE + 1] = { 0 };
 	char* payload = new char[payloadLength];
@@ -132,8 +132,6 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 	// copy the message after the header
 	memcpy(payload + HEADER_SIZE, msg, msgLength);
 
-	// null byte
-	payload[HEADER_SIZE + msgLength] = '\0';
 
 	bool isSent = sendAll(conSocket.get()->getSock(), payload, static_cast<u_int>(payloadLength));
 	DBG("isSent: " << isSent);
@@ -149,16 +147,13 @@ void Client::UserClient::getChat(u_int requestType)
 	constexpr size_t HEADER_SIZE = 2 * INTSIZE; // 8 bytes for header
 	size_t payloadLength = HEADER_SIZE;
 
-	char* payload = new char[payloadLength + 1];
+	char* payload = new char[payloadLength];
 
 	// write header (8 bytes + null terminator for sprintf_s)
 	char headerBuf[HEADER_SIZE + 1] = { 0 };
 	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", INTSIZE, 0, INTSIZE, requestType);
 
 	memcpy(payload, headerBuf, HEADER_SIZE);
-
-	// null byte
-	payload[HEADER_SIZE] = '\0';
 
 	// sendig payload, which is 8 bytes ( size of header, 2 INTSIZE)
 	sendAll(conSocket.get()->getSock(), payload, 2 * INTSIZE);
@@ -169,7 +164,7 @@ void Client::UserClient::getChat(u_int requestType)
 // sends to the server the payload (header + body)
 bool Client::UserClient::sendAll(SOCKET s, char* buf, u_int len)
 {
-	std::cout << "payload: " << buf << std::endl;
+	printf("payload: %*s", len, buf);
 	int sent = 0;
 	//const char* newbuf = "00000001";
 	//len = 8;

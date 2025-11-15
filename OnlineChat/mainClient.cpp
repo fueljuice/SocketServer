@@ -1,12 +1,22 @@
+#include "./Client/UserClient.h"
+#define PORT    5555
+
+
+
+
+
+
+
+
+
 #include <iostream>
 #include <string>
 #include <limits>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#include "./Client/UserClient.h"
-#define PORT    5555
-
+// include whatever defines Client::UserClient and PORT
+// #include "UserClient.h"
 
 int main()
 {
@@ -84,7 +94,7 @@ int main()
         }
         default:
         {
-            std::cout << "invalid option, choose 0, 1,  2" << std::endl;
+            std::cout << "invalid option, choose 0, 1 or 2" << std::endl;
             break;
         }
         }
@@ -92,8 +102,6 @@ int main()
 
     return 0;
 }
-
-
 
 
 

@@ -28,13 +28,7 @@ messaging::ParsingProtocol::ParsingProtocol(messaging::ParsedRequest otherPr, co
 
 	}
 
-// extracts the length and returns it
-int messaging::ParsingProtocol::getRequestLength()
-{
-	if(rawRequestLength == 4)
-		extractLength();
-	return pr.dataSize;
-}
+
 
 // extracts header, data length and request type, into the parsedRequest struct member
 messaging::ParsedRequest messaging::ParsingProtocol::parseHeader()
