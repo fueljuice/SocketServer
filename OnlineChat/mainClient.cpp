@@ -4,19 +4,12 @@
 
 
 
-
-
-
-
-
 #include <iostream>
 #include <string>
 #include <limits>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-// include whatever defines Client::UserClient and PORT
-// #include "UserClient.h"
 
 int main()
 {
