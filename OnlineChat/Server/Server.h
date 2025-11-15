@@ -8,7 +8,7 @@
 #include <fstream>
 
 #include "./data/clientSocketData.h"
-#include "SocketServer.h"
+#include "ServerInterface.h"
 #include "../Parser/ParsingProtocol.h"
 
 
@@ -16,7 +16,7 @@
 namespace sockets::server
 {
 
-	class TestServer final: public SocketServer
+	class Server final: public ServerInterface
 	{
 
 		public:
@@ -24,10 +24,10 @@ namespace sockets::server
 
 			void stop() override;
 
-			TestServer(int domain, int service, int protocol,
+			Server(int domain, int service, int protocol,
 				int port, u_long network_interaface, int backlog);
 
-			~TestServer();
+			~Server();
 
 	private:
 		// atomic bool that can stop threads ina case of stopping the server

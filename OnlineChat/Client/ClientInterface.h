@@ -1,20 +1,30 @@
 #pragma once
+
+
+#include <memory>
+
 #include "../Sockets/ConnectingSocket.h"
-
-class ClientInterface : public sockets::ConnectingSocket
+namespace Client
 {
-public:
-	virtual ~ClientInterface() = 0;
+	class ClientInterface
+	{
+	public:
 
-	virtual void sendPacket() = 0;
-
-	virtual void recievePacket() = 0;
-
-protected:
-	char* m_data;
-	SOCKET serverSock;
-
-private:
+		ClientInterface(int domain, int service, int protocol, int port, u_long network_interface);
 
 
-};
+		// rule of three
+		virtual ~ClientInterface();
+		// delete copy constructors and asignment operators because of the a unique ptr
+		ClientInterface(const ClientInterface&) = delete;
+		ClientInterface& operator=(const ClientInterface&) = delete;
+
+		virtual void sendPacket(const char* msg, u_int requestType) = 0;
+
+		virtual std::string recievePacket() = 0;
+
+	protected:
+		std::unique_ptr<sockets::ConnectingSocket> conSocket;
+
+	};
+}

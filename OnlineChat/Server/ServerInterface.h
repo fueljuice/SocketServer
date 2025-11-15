@@ -6,11 +6,11 @@ namespace sockets::server
 
 
 	
-	class SocketServer
+	class ServerInterface
 	{
 
 	public:
-		SocketServer(int domain, int service, int protocol,
+		ServerInterface(int domain, int service, int protocol,
 			int port, u_long network_interaface, int backlog);
 
 
@@ -22,9 +22,9 @@ namespace sockets::server
 
 
 		// rule of three
-		virtual ~SocketServer() = default;
-		SocketServer(const SocketServer&) = delete;  // unique_ptr noncopyable
-		SocketServer& operator=(const SocketServer&) = delete;
+		virtual ~ServerInterface() = default;
+		ServerInterface(const ServerInterface&) = delete;  // unique_ptr noncopyable
+		ServerInterface& operator=(const ServerInterface&) = delete;
 
 
 	protected:

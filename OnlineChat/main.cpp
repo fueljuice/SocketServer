@@ -2,24 +2,24 @@
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <thread>
+#include <chrono>
 #pragma comment(lib, "Ws2_32.lib")
 
-#include "./Server/TestServer.h"   // your header that declares HDE::TestServer
+#include "./Server/Server.h"   
+#include "./Client/UserClient.h"
 
-int main(int argc, char** argv)
+
+#define PORT 5555
+
+int main()
 {
-    int port = 5555;
-    if (argc >= 2) 
-    {
-        port = std::atoi(argv[1]);
-    }
-
-
+//SERVER
     try 
     {
-        sockets::server::TestServer server(AF_INET, SOCK_STREAM, IPPROTO_TCP, port, INADDR_ANY, SOMAXCONN);
+        sockets::server::Server server(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT, INADDR_ANY, SOMAXCONN);
 
-        std::cout << "Starting TestServer on port " << port << "...\n";
+        std::cout << "Starting TestServer on port " << PORT << "...\n";
         server.launch();
 
         std::cout << "Server running. Press <Enter> to stop.\n";
@@ -34,4 +34,5 @@ int main(int argc, char** argv)
 
     std::cout << "Server exited.\n";
     return 0;
+
 }

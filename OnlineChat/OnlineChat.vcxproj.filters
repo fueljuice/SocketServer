@@ -27,10 +27,10 @@
     <ClCompile Include="Parser\ParsingProtocol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Server\SocketServer.cpp">
+    <ClCompile Include="Server\ServerInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Server\TestServer.cpp">
+    <ClCompile Include="Server\Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Sockets\ConnectingSocket.cpp">
@@ -45,6 +45,12 @@
     <ClCompile Include="Parser\ParsedRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Client\ClientInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mainClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\ClientInterface.h">
@@ -56,10 +62,10 @@
     <ClInclude Include="Parser\ParsingProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Server\SocketServer.h">
+    <ClInclude Include="Server\ServerInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Server\TestServer.h">
+    <ClInclude Include="Server\Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Sockets\ConnectingSocket.h">

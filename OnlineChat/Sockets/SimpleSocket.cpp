@@ -11,7 +11,7 @@ sockets::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int p
 	// port domain and interface
 	address.sin_family = domain;
 	address.sin_port = htons(port);
-	address.sin_addr.s_addr = htonl(network_interaface);
+	address.sin_addr.s_addr = network_interaface;
 
 	// gets the socket file descriptor from the os
 	sock = socket(domain, service, protocol);

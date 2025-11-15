@@ -42,7 +42,6 @@ namespace messaging
 		const char* rawRequest;
 		const unsigned int rawRequestLength;
 		ParsedRequest pr;
-		unsigned int headerLength;
 		
 
 
@@ -55,10 +54,12 @@ namespace messaging
 	public:
 		ParsingProtocol(const char* rawBuf, int rawLength);
 
-		ParsingProtocol(messaging::ParsedRequest& otherPr, const char* rawBuf, int rawLength);
+		ParsingProtocol(messaging::ParsedRequest otherPr, const char* rawBuf, int rawLength);
 
 		int getRequestLength();
 
-		ParsedRequest enforceProtocol();
+		ParsedRequest parseHeader();
+
+		ParsedRequest parseData();
 	};
 }
