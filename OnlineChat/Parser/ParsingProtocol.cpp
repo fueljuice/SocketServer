@@ -34,12 +34,12 @@ messaging::ParsingProtocol::ParsingProtocol(messaging::ParsedRequest otherPr, co
 messaging::ParsedRequest messaging::ParsingProtocol::parseHeader()
 {
 
-	// extract the length only if it wasnt only already extracted
-	if (pr.dataSize == -1)
+	// extract the length only if it wasnt only already extracted and if the buffer is big enough
+	if (pr.dataSize == -1 && rawRequestLength >= INTSIZE)
 		extractLength();
 
 	// extract the request type only if it wasnt only extracted and if the raw buffer is big enough
-	if (pr.requestType == INVALIDACTION && rawRequestLength >= 8)
+	if (pr.requestType == INVALIDACTION && rawRequestLength >= 2 * INTSIZE)
 		extractRequestType();
 
 	// invalidtaes bad requests
@@ -49,7 +49,7 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseHeader()
 		pr.statusCode = 404;
 	}
 
-	return std::move(pr);
+	return pr;
 }
 
 // extracts data, only works if header is already initiallized
@@ -62,7 +62,7 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseData()
 		std::cout << "must parse header first";
 
 
-	return std::move(pr);
+	return pr;
 }
 
 
@@ -77,7 +77,7 @@ void messaging::ParsingProtocol::extractLength()
 	
 	
 	// reads for bytes and converts them into int
-	memcpy(charLength, rawRequest, 4);
+	memcpy(charLength, rawRequest, INTSIZE);
 	std::cout << "after mem copy: " + std::string(charLength) << std::endl;
 	length = strtol(charLength, &endptr, 10);
 
@@ -127,9 +127,27 @@ void messaging::ParsingProtocol::extractRequestType()
 // extracts data into parsedrequest struct
 void messaging::ParsingProtocol::extractData()
 {
+	constexpr unsigned int HEADER_SIZE = 2 * INTSIZE; 
+	int offset = 0;
+	// checking if the header is inside the request and moving the offset accordingly
+	if (pr.dataSize == rawRequestLength)
+		// if no header, no offset for the data
+		offset = 0; 
+
+	else if (pr.dataSize + HEADER_SIZE == rawRequestLength)
+		// if the header is inside the request, the offset is from the end of the header
+		offset = HEADER_SIZE;
+
+	else
+	{
+		// unkokn length, dont read anything
+		std::cout << "invalid request length" << std::endl;
+		return;
+	}
+
 	std::cout << "extracting data.... datasize: " << pr.dataSize << std::endl;
 	pr.databuffer = new char[pr.dataSize + 1];
-	memcpy(pr.databuffer, rawRequest, pr.dataSize);
+	memcpy(pr.databuffer, rawRequest + offset, pr.dataSize);
 	pr.databuffer[pr.dataSize] = '\0';
 	printf("data parsed: %4s\n", pr.databuffer);
 
