@@ -49,7 +49,7 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseHeader()
 		pr.statusCode = 404;
 	}
 
-	return pr;
+	return std::move(pr);
 }
 
 // extracts data, only works if header is already initiallized
@@ -62,7 +62,7 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseData()
 		std::cout << "must parse header first";
 
 
-	return pr;
+	return std::move(pr);
 }
 
 
@@ -146,6 +146,8 @@ void messaging::ParsingProtocol::extractData()
 	}
 
 	std::cout << "extracting data.... datasize: " << pr.dataSize << std::endl;
+
+	//copying a new buffer
 	pr.databuffer = new char[pr.dataSize + 1];
 	memcpy(pr.databuffer, rawRequest + offset, pr.dataSize);
 	pr.databuffer[pr.dataSize] = '\0';

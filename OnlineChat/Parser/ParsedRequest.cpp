@@ -4,7 +4,8 @@ messaging::ParsedRequest::ParsedRequest()
 	:
 	dataSize(-1),
 	requestType(INVALIDACTION),
-	statusCode(404)
+	statusCode(404),
+	databuffer(nullptr)
 {
 }
 
@@ -18,12 +19,11 @@ messaging::ParsedRequest::ParsedRequest(ParsedRequest&& other) noexcept
 	statusCode(other.statusCode),
 	databuffer(other.databuffer)
 {
-	other.dataSize = 0;
+	other.dataSize = -1;
 	other.databuffer = nullptr;
 }
 
 messaging::ParsedRequest::~ParsedRequest()
 {
-	if (databuffer != nullptr)
-		delete databuffer;
+	delete[] databuffer;
 };

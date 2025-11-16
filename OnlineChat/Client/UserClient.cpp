@@ -72,7 +72,17 @@ std::string Client::UserClient::recievePacket()
 	// recving the length header
 	DBG("recving packet");
 
+	//recving from server the header for the length
 	bytesRead = recv(conSocket.get()->getSock(), lengthBuf, INTSIZE, MSG_WAITALL);
+
+	// making sure it read
+	if (bytesRead != INTSIZE) 
+	{
+		DBG("failed to read length header");
+		return {};
+	}
+
+
 
 	DBG("recved bytes :" << bytesRead);
 	DBG("length buf :" << lengthBuf);
@@ -94,7 +104,11 @@ std::string Client::UserClient::recievePacket()
 
 
 	bytesRead = recv(conSocket.get()->getSock(), msgBuf, intLength, MSG_WAITALL);
-
+	if (bytesRead != intLength) 
+	{
+		DBG("failed to read full message body, bytesRead=" << bytesRead);
+		return {};
+	}
 	msgBuf[intLength] = '\0';
 
 	stringMsg = msgBuf;

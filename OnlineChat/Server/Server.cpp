@@ -152,6 +152,7 @@ void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocke
         {
             std::cout << "couldnt read length from client. bytes read: " << lengthHeaderBytes << std::endl;
             std::cout << "last problem: " << WSAGetLastError() << std::endl;
+            removeDeadClient(client->clientSocket);
             return;
         }
         std::cout << "calling pp " << std::endl;

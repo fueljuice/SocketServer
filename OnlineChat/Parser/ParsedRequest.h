@@ -21,8 +21,7 @@ namespace messaging
 		ParsedRequest();
 
 		ParsedRequest(ParsedRequest&& other) noexcept;
-		ParsedRequest(const ParsedRequest& other) noexcept = default;
-
+		ParsedRequest(const ParsedRequest& other) noexcept = delete;
 		~ParsedRequest();
 	};
 
