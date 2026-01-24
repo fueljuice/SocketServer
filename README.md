@@ -42,3 +42,12 @@ for example:
 
 ```text
 "0005""0002"
+```
+
+### requests
+the protocol supports of two requests:
+
+**SENDMESSAGE** - updates a message into the database and updates every connected client's console with the message.
+
+**GETCHAT** -  dumps the entire chat log into the console.
+
