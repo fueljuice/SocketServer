@@ -1,6 +1,6 @@
 # simple-chat-socket-server
 
-a simple tcp chat server + client written in c++ using winsock.  
+a simple over tcp chat server + client written in c++ using winsock. the objective it to allow a client to interact (read and write) to a text file on the server's machine. the server activley tracks every connected client through multithreading and synchronizes the clients request with each other
 
 ---
 
@@ -24,7 +24,7 @@ the project consists of:
 the "database" is simply a text file on disk:
 
 ```cpp
-#define dbFileDir "C:\\Users\\zohar\\Desktop\\dbFile.txt"
+#define dbFileDir "C:\\Users\\XXXXX\\Desktop\\dbFile.txt"
 ```
 
 ## protocol
@@ -42,3 +42,12 @@ for example:
 
 ```text
 "0005""0002"
+```
+
+### requests
+the protocol supports of two requests:
+
+**SENDMESSAGE** - updates a message into the database and updates every connected client's console with the message.
+
+**GETCHAT** -  dumps the entire chat log into the console.
+
