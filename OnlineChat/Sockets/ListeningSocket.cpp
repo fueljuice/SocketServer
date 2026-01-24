@@ -2,7 +2,7 @@
 
 
 sockets::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port, u_long network_interface, int bklog)
-	: 
+	:
 	SimpleSocket(domain, service, protocol, port, htonl(network_interface)),
 	backlog(bklog)
 {
@@ -48,7 +48,7 @@ void sockets::ListeningSocket::stopLisetning()
 	{
 		std::cout << "closing socket in ListeningSocket class" << std::endl;
 		shutdown(s, SD_BOTH);
-		closesocket(s);               
+		closesocket(s);
 		setSock((INVALID_SOCKET));
 	}
 }

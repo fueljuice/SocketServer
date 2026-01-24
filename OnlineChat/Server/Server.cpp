@@ -1,15 +1,12 @@
 #include "Server.h"
-
-
-#define dbFileDir   "C:\\Users\\zohar\\Desktop\\dbFile.txt"
+#define dbFileDir   "C:\\Users\\XXXXX\\Desktop\\dbFile.txt"
 #define INTSIZE     4
 #define MAXBYTES    9999
-
 
 // constructor that init the base server
 sockets::server::Server::Server(int domain, int service, int protocol,
     int port, u_long network_interaface, int backlog)
-    : ServerInterface(domain, service, protocol,
+    : AbstractServer(domain, service, protocol,
         port, network_interaface, backlog)
 {
     std::cout << "init Server" << std::endl;
@@ -19,8 +16,7 @@ sockets::server::Server::Server(int domain, int service, int protocol,
 
 void sockets::server::Server::launch()
 {
-    lstnSocket->startLisetning();
-    // changing the atomic member that represents the server running, to true 
+   lstnSocket->startLisetning();
    running.store(true);
    acceptConnection();
 }
@@ -28,15 +24,11 @@ void sockets::server::Server::launch()
 // force shuts the server
 void sockets::server::Server::stop()
 {
-
     std::cout << "stopped server" << std::endl;
     // stopping the atomic running member
     running.store(false);
-
     // closes the socket listener 
     lstnSocket->stopLisetning();
-
-
     {
         std::lock_guard<std::mutex> lk(clientVectorMutex);
         for (auto& c : clientVector)
@@ -60,9 +52,7 @@ void sockets::server::Server::stop()
         std::lock_guard<std::mutex> lk(clientVectorMutex);
         clientVector.clear();
     }
-
     clientThreads.clear();
-
 }
 
 
@@ -73,7 +63,6 @@ sockets::server::Server::~Server()
     if (dbFile.is_open())
         dbFile.close();
 }
-
 
 
 void sockets::server::Server::acceptConnection()
@@ -88,7 +77,6 @@ void sockets::server::Server::acceptConnection()
     {
         sockaddr clientAddr{};
         addrLen = sizeof(clientAddr);
-
         // async function that waits for a client
         newSock = lstnSocket->acceptCon(
             reinterpret_cast<sockaddr*>(&clientAddr),
@@ -108,14 +96,8 @@ void sockets::server::Server::acceptConnection()
                 clientVector.push_back(clientPtr);
             }
             onClientAccept(clientPtr);
-        
-        }
-        else
-        {
-            std::cout << "accpeted invalid socket" << std::endl;
         }
     }
-
 }
 
 // opens a new thread for each client accepted
@@ -126,15 +108,12 @@ void sockets::server::Server::onClientAccept(std::shared_ptr<data::ClientSocketD
         &sockets::server::Server::handleConnection,
         this,
         std::move(client));
-
 }
 
 // handles client by recviing the length of the clients data. then reading from its socket the length amount.
 void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocketData> client)
 {
     int bodyBytes, lengthHeaderBytes, totalrecv = 0;
-    std::cout << "recving length" << std::endl;
-    // rhandling the client until a force stop or a closed client socket
     while(running.load())
     {
         // recving the entire header. which is 8 bytes (2 * INTSIZE)
@@ -144,62 +123,49 @@ void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocke
             2 * INTSIZE,
             MSG_WAITALL
         );
-
-        printf("buf: %8s\n", client->dataBuf.get());
-
-        
         if (lengthHeaderBytes != 2 * INTSIZE)
         {
-            std::cout << "couldnt read length from client. bytes read: " << lengthHeaderBytes << std::endl;
-            std::cout << "last problem: " << WSAGetLastError() << std::endl;
             removeDeadClient(client->clientSocket);
-            return;
+            break;
         }
-        std::cout << "calling pp " << std::endl;
 
         //  parses the header
         messaging::ParsingProtocol pp(client->dataBuf.get(), 2 * INTSIZE);
-        messaging::ParsedRequest pr = pp.parseHeader(); // the length of the request
-        std::cout << "length: : " << pr.dataSize << std::endl;
-
-        // if the request is getchat, theres no need in recving again
-        if(pr.requestType == messaging::GETCHAT)
-            respondToClient(client, pr);
-
-
-        else
+        messaging::ParsedRequest pr = pp.parseHeader();
+        switch(pr.requestType)
         {
-            // waiting until the entire meessage arrives using the length 
-            // we got and the MSG_WAITALL flag
-            std::cout << "recving from client" << std::endl;
-            bodyBytes = recv(
-                client->clientSocket,
-                client->dataBuf.get(),
-                pr.dataSize, // the recv expects the body itself
-                MSG_WAITALL
-            );
-            std::cout << "done rcev" << std::endl;
-
-            if (bodyBytes > 0)
+            case messaging::GETCHAT:
             {
-                // sucsessful read. storing data and responding.
-                printf("Bytes received: %d\n", bodyBytes);
-                printf("recv data: %s\n", client->dataBuf.get());
-                client.get()->lenData = bodyBytes;
                 respondToClient(client, pr);
-            }
-
-            else if (bodyBytes == 0)
-            {
-                printf("Connection closed recv 0\n");
-                removeDeadClient(client->clientSocket);
                 break;
             }
 
-            else
+            default:
             {
-                printf("recv failed: %d\n", WSAGetLastError());
-                removeDeadClient(client->clientSocket);
+                // waiting until the entire meessage arrives using the length 
+                // we got and the MSG_WAITALL flag
+                std::cout << "recving from client" << std::endl;
+                bodyBytes = recv(
+                    client->clientSocket,
+                    client->dataBuf.get(),
+                    pr.dataSize, // the recv expects the body itself
+                    MSG_WAITALL
+                );
+                std::cout << "done rcev" << std::endl;
+                // sucsessful read. storing data and responding.
+                if (bodyBytes > 0)
+                {
+                    printf("Bytes received: %d\n", bodyBytes);
+                    printf("recv data: %s\n", client->dataBuf.get());
+                    client.get()->lenData = bodyBytes;
+                    respondToClient(client, pr);
+                }
+                else
+                {
+                    printf("recv failed: \n");
+                    removeDeadClient(client->clientSocket);
+                    return;
+                }
                 break;
             }
         }
@@ -214,46 +180,41 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
     std::cout << "responding to client..." << std::endl;
     // parsing with the previous header as parameter 
     messaging::ParsingProtocol pp(std::move(pr), client.get()->dataBuf.get(), client.get()->lenData);
-
     // getting the new parsed request with data
     messaging::ParsedRequest refinedPr = pp.parseData();
-    
     if (refinedPr.statusCode != 200)
     {
         std::cout << "STATUS CODE BAD 404" << std::endl;
+        return;
     }
-    else
+
+    std::cout << "STATUS CODE OK 200" << std::endl;
+    // matching which request type was asked for 
+    switch (refinedPr.requestType)
     {
-        // in a case of valid request match the request to the function
-        std::cout << "STATUS CODE OK 200" << std::endl;
 
-        // matching which request type was asked for 
-        switch (refinedPr.requestType)
+        // sendmessage request
+        case messaging::SENDMESSAGE:
         {
-
-            // sendmessage request
-            case messaging::SENDMESSAGE:
-            {
-                std::cout << "send message request" << std::endl;
-                sendMessage(client, refinedPr);
-                break;
-            }
-
-            // get chat request
-            case messaging::GETCHAT:
-            {
-                std::cout << "get chat request" << std::endl;
-                getChat(client, refinedPr);
-                break;
-            }
-
-            default:
-            {
-                std::cout << "BAD REQUEST TYPE" << std::endl;
-                break;
-            }
-
+            std::cout << "send message request" << std::endl;
+            sendMessage(client, refinedPr);
+            break;
         }
+
+        // get chat request
+        case messaging::GETCHAT:
+        {
+            std::cout << "get chat request" << std::endl;
+            getChat(client, refinedPr);
+            break;
+        }
+
+        default:
+        {
+            std::cout << "BAD REQUEST TYPE" << std::endl;
+            break;
+        }
+  
     }
 }
 
@@ -389,8 +350,6 @@ bool sockets::server::Server::sendAll(SOCKET s, const char* buf, int len)
     sentLength = send(s, formattedLength, INTSIZE, 0);
     if (sentLength != INTSIZE)
         return false;
-
-    
 
     // sending the buffer itself
     while (sent < len)

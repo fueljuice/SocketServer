@@ -10,7 +10,7 @@
 
 Client::UserClient::UserClient(int domain, int service, int protocol, int port, u_long network_interface)
 	:
-	ClientInterface(domain, service, protocol, port, network_interface)
+	AbstractClient(domain, service, protocol, port, network_interface)
 {
 	DBG("UserClient ctor called ");
 }
@@ -25,40 +25,32 @@ void Client::UserClient::sendPacket(const char* msg, u_int requestType)
 	switch (requestType)
 	{
 
-	// requestType: getchat = 1, sendmessage = 2
-	case 1:
-	{
-		getChat(requestType);
-		break;
-	}
-
-	case 2:
-	{
-		if (!msg) 
+		// requestType: getchat = 1, sendmessage = 2
+		case 1:
 		{
-			std::cerr << "message cant be null with sendmessage request" << std::endl;
-			return;
+			getChat(requestType);
+			break;
 		}
 
-		sendMessage(static_cast<u_int>(strlen(msg)), msg, requestType);
-		break;
+		case 2:
+		{
+			if (!msg) 
+			{
+				std::cerr << "message cant be null with sendmessage request" << std::endl;
+				return;
+			}
+
+			sendMessage(static_cast<u_int>(strlen(msg)), msg, requestType);
+			break;
+		}
+
+		default:
+		{
+			DBG("failed to identify request");
+
+			return;
+		}
 	}
-
-	default:
-	{
-		DBG("failed to identify request");
-
-		return;
-	}
-
-
-
-
-
-	}
-
-
-
 }
 
 // recving the answer from the server
@@ -186,10 +178,7 @@ void Client::UserClient::getChat(u_int requestType)
 // sends to the server the payload (header + body)
 bool Client::UserClient::sendAll(SOCKET s, char* buf, u_int len)
 {
-	printf("payload: %*s", len, buf);
 	int sent = 0;
-	//const char* newbuf = "00000001";
-	//len = 8;
 	while (sent < len)
 	{
 		int r = send(s, buf + sent, len - sent, 0);

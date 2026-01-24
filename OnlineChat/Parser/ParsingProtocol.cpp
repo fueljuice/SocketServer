@@ -22,7 +22,6 @@ messaging::ParsingProtocol::ParsingProtocol(messaging::ParsedRequest otherPr, co
 	rawRequestLength(rawLength)
 	{
 	pr.statusCode = 200;
-
 	std::cout << "ctor of parsingProtocol called with parsed request" << std::endl;
 
 

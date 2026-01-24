@@ -1,6 +1,6 @@
-#include "ServerInterface.h"
+#include "AbstractServer.h"
 
-sockets::server::ServerInterface::ServerInterface(int domain, int service,
+sockets::server::AbstractServer::AbstractServer(int domain, int service,
 	int protocol, int port, u_long network_interaface, int backlog)
 
 	: lstnSocket(std::make_unique<ListeningSocket>(domain

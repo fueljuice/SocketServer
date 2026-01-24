@@ -30,34 +30,32 @@ the data should be the rest of the buffer.
 
 */
 
-
-
 namespace messaging
 {
+class ParsingProtocol
+{
+public:
+	// constructs using a buffer and its lengtg
+	ParsingProtocol(const char* rawBuf, int rawLength);
+	// constructor that utilize data already gothered
+	ParsingProtocol(messaging::ParsedRequest otherPr, const char* rawBuf, int rawLength);
 
+	// returns a prasedRequest struct with the extarrcted header length
+	ParsedRequest parseHeader();
 
-	class ParsingProtocol
-	{
-	private:
-		const char* rawRequest;
-		const unsigned int rawRequestLength;
-		ParsedRequest pr;
-		
+	// returns a prasedRequest struct with the extarcted data 
+	ParsedRequest parseData();
 
+private:
+	const char* rawRequest;
+	const unsigned int rawRequestLength;
+	ParsedRequest pr;
+	// extarcts length of data	
+	void extractLength();
+	// extarcrts request type
+	void extractRequestType();
+	// extacrts data itself
+	void extractData();
 
-		void extractLength();
-
-		void extractRequestType();
-
-		void extractData();
-
-	public:
-		ParsingProtocol(const char* rawBuf, int rawLength);
-
-		ParsingProtocol(messaging::ParsedRequest otherPr, const char* rawBuf, int rawLength);
-
-		ParsedRequest parseHeader();
-
-		ParsedRequest parseData();
-	};
+};
 }

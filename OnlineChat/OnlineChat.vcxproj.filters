@@ -27,7 +27,7 @@
     <ClCompile Include="Parser\ParsingProtocol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Server\ServerInterface.cpp">
+    <ClCompile Include="Server\AbstractServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Server\Server.cpp">
@@ -45,7 +45,7 @@
     <ClCompile Include="Parser\ParsedRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Client\ClientInterface.cpp">
+    <ClCompile Include="Client\AbstractClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mainClient.cpp">
@@ -53,7 +53,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client\ClientInterface.h">
+    <ClInclude Include="Client\AbstractClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Client\UserClient.h">
@@ -62,7 +62,7 @@
     <ClInclude Include="Parser\ParsingProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Server\ServerInterface.h">
+    <ClInclude Include="Server\AbstractServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Server\Server.h">

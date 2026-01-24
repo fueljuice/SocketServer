@@ -1,6 +1,6 @@
-#include "ClientInterface.h"
+#include "AbstractClient.h"
 
-Client::ClientInterface::ClientInterface(int domain, int service, int protocol, int port, u_long network_interface)
+Client::AbstractClient::AbstractClient(int domain, int service, int protocol, int port, u_long network_interface)
 	:
 	conSocket(std::make_unique<sockets::ConnectingSocket>
 		(domain, service, protocol, port, network_interface))
@@ -9,7 +9,7 @@ Client::ClientInterface::ClientInterface(int domain, int service, int protocol, 
 	conSocket->startConnect();
 }
 
-Client::ClientInterface::~ClientInterface()
+Client::AbstractClient::~AbstractClient()
 {
 	conSocket->stopConnection();
 }

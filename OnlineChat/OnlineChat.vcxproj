@@ -129,25 +129,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client\ClientInterface.cpp" />
+    <ClCompile Include="Client\AbstractClient.cpp" />
     <ClCompile Include="mainClient.cpp" />
     <ClCompile Include="Server\data\ClientSocketData.cpp" />
     <ClCompile Include="Client\UserClient.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser\ParsedRequest.cpp" />
     <ClCompile Include="Parser\ParsingProtocol.cpp" />
-    <ClCompile Include="Server\ServerInterface.cpp" />
+    <ClCompile Include="Server\AbstractServer.cpp" />
     <ClCompile Include="Server\Server.cpp" />
     <ClCompile Include="Sockets\ConnectingSocket.cpp" />
     <ClCompile Include="Sockets\ListeningSocket.cpp" />
     <ClCompile Include="Sockets\SimpleSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client\ClientInterface.h" />
+    <ClInclude Include="Client\AbstractClient.h" />
     <ClInclude Include="Client\UserClient.h" />
     <ClInclude Include="Parser\ParsedRequest.h" />
     <ClInclude Include="Parser\ParsingProtocol.h" />
-    <ClInclude Include="Server\ServerInterface.h" />
+    <ClInclude Include="Server\AbstractServer.h" />
     <ClInclude Include="Server\Server.h" />
     <ClInclude Include="Sockets\ConnectingSocket.h" />
     <ClInclude Include="Sockets\ListeningSocket.h" />

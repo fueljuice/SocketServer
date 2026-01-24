@@ -19,11 +19,11 @@ sockets::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int p
 
 	testConnection(sock);
 	std::cout << "sucsessful socket init" << std::endl;
-	
-		
+
+
 }
 // exits if failed to make a valid socket
-void sockets::SimpleSocket::testConnection(const SOCKET &sock) const
+void sockets::SimpleSocket::testConnection(const SOCKET& sock) const
 {
 	if (sock < 0)
 	{
@@ -62,12 +62,12 @@ SOCKET sockets::SimpleSocket::getSock() const
 
 
 // getters 
-void sockets::SimpleSocket::setAddress(const struct sockaddr_in &address)
+void sockets::SimpleSocket::setAddress(const struct sockaddr_in& address)
 {
 	this->address = address;
 }
 
-void sockets::SimpleSocket::setSock(const SOCKET &sock)
+void sockets::SimpleSocket::setSock(const SOCKET& sock)
 {
 	this->sock = sock;
 }
