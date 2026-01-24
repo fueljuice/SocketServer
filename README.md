@@ -1,6 +1,6 @@
 # simple-chat-socket-server
 
-a simple tcp chat server + client written in c++ using winsock.  
+a simple over tcp chat server + client written in c++ using winsock. the objective it to allow a client to interact (read and write) to a text file on the server's machine
 
 ---
 
