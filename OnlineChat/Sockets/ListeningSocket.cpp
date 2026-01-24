@@ -1,5 +1,10 @@
 #include "ListeningSocket.h"
 
+#ifdef PR_DEBUG
+#define DBG(X) DBG(X)
+#else
+#define DBG(X)
+#endif // PR_DEBUG
 
 sockets::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port, u_long network_interface, int bklog)
 	:
@@ -17,7 +22,7 @@ void sockets::ListeningSocket::connectToNetwork(SOCKET sock, sockaddr_in address
 	bindSocket(sock, address);
 	//testing binding
 	testConnection(getSock());
-	std::cout << "binded sucsessfuly to port" << getAddress().sin_port << std::endl;
+	DBG("binded sucsessfuly to port" << getAddress().sin_port);
 
 
 }
@@ -35,7 +40,7 @@ void sockets::ListeningSocket::startLisetning()
 {
 	listening = listen(getSock(), backlog);
 	testConnection(listening);
-	std::cout << "started lisetning sucsessfuly on port" << getAddress().sin_port << std::endl;
+	DBG("started lisetning sucsessfuly on port" << getAddress().sin_port);
 
 }
 
@@ -46,7 +51,7 @@ void sockets::ListeningSocket::stopLisetning()
 	SOCKET s = getSock();
 	if (s != INVALID_SOCKET)
 	{
-		std::cout << "closing socket in ListeningSocket class" << std::endl;
+		DBG("closing socket in ListeningSocket class");
 		shutdown(s, SD_BOTH);
 		closesocket(s);
 		setSock((INVALID_SOCKET));

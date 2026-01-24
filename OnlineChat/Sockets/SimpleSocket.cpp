@@ -1,10 +1,16 @@
-
 #include "SimpleSocket.h"
+
+#ifdef PR_DEBUG
+#define DBG(X) DBG(X)
+#else
+#define DBG(X)
+#endif // PR_DEBUG
+
 
 // init the socket with the settings provided to the constructor
 sockets::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port, u_long network_interaface)
 {
-	std::cout << "initiating socket..." << std::endl;
+	DBG("initiating socket...");
 	// init WSA
 	initWSA();
 
@@ -15,10 +21,10 @@ sockets::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int p
 
 	// gets the socket file descriptor from the os
 	sock = socket(domain, service, protocol);
-	std::cout << sock << std::endl;
+	DBG(sock);
 
 	testConnection(sock);
-	std::cout << "sucsessful socket init" << std::endl;
+	DBG("sucsessful socket init");
 
 
 }
@@ -27,7 +33,7 @@ void sockets::SimpleSocket::testConnection(const SOCKET& sock) const
 {
 	if (sock < 0)
 	{
-		std::cout << sock << std::endl;
+		DBG(sock);
 		perror("failed to zohar connect");
 		exit(EXIT_FAILURE);
 
@@ -40,12 +46,11 @@ void sockets::SimpleSocket::initWSA()
 {
 	if (WSAStartup(MAKEWORD(2, 2), &(this->wsa)) != 0)
 	{
-		printf("WSAStartup failed: %d\n", WSAGetLastError());
 		perror("err WSA");
 		closesocket(sock);
 		WSACleanup();
 	}
-	std::cout << "WSA sucsess " << std::endl;
+	DBG("WSA sucsess ");
 }
 
 // setters
@@ -75,7 +80,7 @@ void sockets::SimpleSocket::setSock(const SOCKET& sock)
 // calls wsa cleanup and closes the socket
 sockets::SimpleSocket::~SimpleSocket()
 {
-	std::cout << "destructing wsa and the socket" << std::endl;
+	DBG("destructing wsa and the socket");
 	closesocket(sock);
 	WSACleanup();
 }

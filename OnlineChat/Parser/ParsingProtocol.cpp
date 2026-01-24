@@ -1,6 +1,10 @@
 #include "ParsingProtocol.h"
 #define  INTSIZE	4
-
+#ifdef PR_DEBUG
+#define DBG(X) std::cout << X << std::endl
+#else
+#define DBG(X)
+#endif // PR_DEBUG
 
 // a constructor overcload that construcrts with a brand new buffer and its length
 messaging::ParsingProtocol::ParsingProtocol(const char* rawBuf, int rawLength)
@@ -8,7 +12,7 @@ messaging::ParsingProtocol::ParsingProtocol(const char* rawBuf, int rawLength)
 	rawRequest(rawBuf),
 	rawRequestLength(rawLength)
 	{
-		std::cout << "ctor of parsingProtocol called with rawbuf and rawlength" << std::endl;
+	DBG("ctor of parsingProtocol called with rawbuf and rawlength");
 
 		pr.statusCode = 200;
 	}
@@ -22,7 +26,7 @@ messaging::ParsingProtocol::ParsingProtocol(messaging::ParsedRequest otherPr, co
 	rawRequestLength(rawLength)
 	{
 	pr.statusCode = 200;
-	std::cout << "ctor of parsingProtocol called with parsed request" << std::endl;
+	DBG("ctor of parsingProtocol called with parsed request" );
 
 
 	}
@@ -44,7 +48,7 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseHeader()
 	// invalidtaes bad requests
 	if (static_cast<int>(pr.requestType) < 1 || static_cast<int>(pr.requestType) > 2)
 	{
-		std::cout << "BAD 404 IN THE PARSING" << std::endl;
+		DBG("BAD 404 IN THE PARSING" );
 		pr.statusCode = 404;
 	}
 
@@ -54,11 +58,11 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseHeader()
 // extracts data, only works if header is already initiallized
 messaging::ParsedRequest messaging::ParsingProtocol::parseData()
 {
-
+	// check for valid conditions to extract data
 	if (pr.requestType == SENDMESSAGE && pr.dataSize > -1)
 		extractData();
 	else
-		std::cout << "must parse header first";
+		DBG("must parse header first");
 
 
 	return std::move(pr);
@@ -71,26 +75,26 @@ void messaging::ParsingProtocol::extractLength()
 	char* endptr;
 	int length;
 	char charLength[INTSIZE + 1] = {0};
-	std::cout << "extracting length.." << std::endl;
+	DBG("extracting length..");
 	
 	
 	
 	// reads for bytes and converts them into int
 	memcpy(charLength, rawRequest, INTSIZE);
-	std::cout << "after mem copy: " + std::string(charLength) << std::endl;
+	DBG("after mem copy: " + std::string(charLength));
 	length = strtol(charLength, &endptr, 10);
 
 
 	// if read didnt sucsessfuly unitialize the data
 	if (endptr == charLength)
 	{
-		std::cout << "couldnt convert char length to int" << std::endl;
+		DBG("couldnt convert char length to int");
 		pr.dataSize = -1;
 	}
 	else
 	{
 		pr.dataSize = length;
-		std::cout << "int value of length: " << pr.dataSize << std::endl;
+		DBG("int value of length: ");
 	}
 
 }
@@ -98,8 +102,8 @@ void messaging::ParsingProtocol::extractLength()
 // extracts request type from header to
 void messaging::ParsingProtocol::extractRequestType()
 {
-	std::cout << "EXTRACTING REQUEST TYPE.." << std::endl;
-	std::cout << "raw request: " + std::string(rawRequest) << std::endl;
+	DBG("EXTRACTING REQUEST TYPE..");
+	DBG("raw request: " + std::string(rawRequest));
 
 
 	action reqType;
@@ -113,12 +117,12 @@ void messaging::ParsingProtocol::extractRequestType()
 
 	if (!reqType)
 	{
-		std::cout << "couldnt convert char length to int" << std::endl;
+		DBG("couldnt convert char length to int" );
 		pr.requestType = INVALIDACTION;
 	}
 	else
 	{
-		std::cout << "reqType: " << reqType << std::endl;
+		DBG("reqType: " << reqType);
 		pr.requestType = reqType;
 	}
 
@@ -140,17 +144,16 @@ void messaging::ParsingProtocol::extractData()
 	else
 	{
 		// unkokn length, dont read anything
-		std::cout << "invalid request length" << std::endl;
+		DBG("invalid request length" );
 		return;
 	}
 
-	std::cout << "extracting data.... datasize: " << pr.dataSize << std::endl;
+	DBG("extracting data.... datasize: " << pr.dataSize );
 
 	//copying a new buffer
 	pr.databuffer = new char[pr.dataSize + 1];
 	memcpy(pr.databuffer, rawRequest + offset, pr.dataSize);
 	pr.databuffer[pr.dataSize] = '\0';
-	printf("data parsed: %4s\n", pr.databuffer);
 
 }
 

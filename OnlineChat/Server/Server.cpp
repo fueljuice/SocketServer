@@ -1,7 +1,14 @@
 #include "Server.h"
+
 #define dbFileDir   "C:\\Users\\XXXXX\\Desktop\\dbFile.txt"
 #define INTSIZE     4
 #define MAXBYTES    9999
+
+#ifdef PR_DEBUG
+#define DBG(X) std::cout << X << std::endl
+#else
+#define DBG(X)
+#endif // PR_DEBUG
 
 // constructor that init the base server
 sockets::server::Server::Server(int domain, int service, int protocol,
@@ -9,7 +16,7 @@ sockets::server::Server::Server(int domain, int service, int protocol,
     : AbstractServer(domain, service, protocol,
         port, network_interaface, backlog)
 {
-    std::cout << "init Server" << std::endl;
+    DBG("init Server");
     // opens a handle to the file which is used as the database.
     dbFile.open(dbFileDir, std::ios::in | std::ios::out | std::ios::app);
 }
@@ -24,7 +31,7 @@ void sockets::server::Server::launch()
 // force shuts the server
 void sockets::server::Server::stop()
 {
-    std::cout << "stopped server" << std::endl;
+    DBG("stopped server");
     // stopping the atomic running member
     running.store(false);
     // closes the socket listener 
@@ -70,7 +77,7 @@ void sockets::server::Server::acceptConnection()
 
     socklen_t addrLen;
     SOCKET newSock;
-    std::cout << "accepting..." << std::endl;
+    DBG("accepting...");
 
     // running while the atomic member is true (on).
     while(running.load())
@@ -82,12 +89,12 @@ void sockets::server::Server::acceptConnection()
             reinterpret_cast<sockaddr*>(&clientAddr),
             &addrLen);
 
-        std::cout << "done accept..." << std::endl;
+        DBG("done accept...");
 
         // in the case of a legit socket
         if (newSock != INVALID_SOCKET)
         {
-            std::cout << "accepted valid socket" << std::endl;
+            DBG("accepted valid socket");
             auto clientPtr = std::make_shared<data::ClientSocketData>(newSock, clientAddr, MAXBYTES);
             {
                 // locking before pushing the socket of the client into the list of clients.
@@ -144,25 +151,23 @@ void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocke
             {
                 // waiting until the entire meessage arrives using the length 
                 // we got and the MSG_WAITALL flag
-                std::cout << "recving from client" << std::endl;
+                DBG("recving from client");
                 bodyBytes = recv(
                     client->clientSocket,
                     client->dataBuf.get(),
                     pr.dataSize, // the recv expects the body itself
                     MSG_WAITALL
                 );
-                std::cout << "done rcev" << std::endl;
+                DBG("done rcev");
                 // sucsessful read. storing data and responding.
                 if (bodyBytes > 0)
                 {
-                    printf("Bytes received: %d\n", bodyBytes);
-                    printf("recv data: %s\n", client->dataBuf.get());
                     client.get()->lenData = bodyBytes;
                     respondToClient(client, pr);
                 }
                 else
                 {
-                    printf("recv failed: \n");
+                    DBG("recv failed: ");
                     removeDeadClient(client->clientSocket);
                     return;
                 }
@@ -177,18 +182,18 @@ void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocke
 void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
 {
 
-    std::cout << "responding to client..." << std::endl;
+    DBG("responding to client...");
     // parsing with the previous header as parameter 
     messaging::ParsingProtocol pp(std::move(pr), client.get()->dataBuf.get(), client.get()->lenData);
     // getting the new parsed request with data
     messaging::ParsedRequest refinedPr = pp.parseData();
     if (refinedPr.statusCode != 200)
     {
-        std::cout << "STATUS CODE BAD 404" << std::endl;
+        DBG("STATUS CODE BAD 404");
         return;
     }
 
-    std::cout << "STATUS CODE OK 200" << std::endl;
+    DBG("STATUS CODE OK 200");
     // matching which request type was asked for 
     switch (refinedPr.requestType)
     {
@@ -196,7 +201,7 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
         // sendmessage request
         case messaging::SENDMESSAGE:
         {
-            std::cout << "send message request" << std::endl;
+            DBG("send message request");
             sendMessage(client, refinedPr);
             break;
         }
@@ -204,14 +209,14 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
         // get chat request
         case messaging::GETCHAT:
         {
-            std::cout << "get chat request" << std::endl;
+            DBG("get chat request");
             getChat(client, refinedPr);
             break;
         }
 
         default:
         {
-            std::cout << "BAD REQUEST TYPE" << std::endl;
+            DBG("BAD REQUEST TYPE");
             break;
         }
   
@@ -221,7 +226,7 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
 // sends the entire data base to the client, according to the protocol
 void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
 {
-    std::cout << "getChat request called" << std::endl;
+    DBG("getChat request called");
     bool isSent;
     std::string allText;
 
@@ -231,7 +236,7 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
         std::lock_guard<std::mutex> lk(fileMutex);
         if (!dbFile.is_open())
         {
-            std::cout << "cant open file" << std::endl;
+            DBG("cant open file");
             return;
         }
 
@@ -248,20 +253,20 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
         // therfore its got to be cut
         if (allText.size() > 9999)
         {
-            std::cout << "text is too big.. CUTTING IT TO SIZE 9999" << std::endl;
+            DBG("text is too big.. CUTTING IT TO SIZE 9999");
             allText.resize(9999);
 
         }
 
         if (!dbFile.good() && !dbFile.eof())
         {
-            std::cout << "can't read file" << std::endl;
+            DBG("can't read file");
             return;
         }
     }
 
     {
-        std::cout << "allText:" << allText << "\nsize of allText: " << allText.size() << std::endl;
+        DBG("allText:" << allText << "\nsize of allText: " << allText.size());
         // sending the file text to the client
         std::lock_guard<std::mutex> lk(sendMutex);
         isSent = sendAll(
@@ -273,7 +278,7 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
 
     if (!isSent)
     {
-        std::cout << "client socket unavaiable. cant send client" << std::endl;
+        DBG("client socket unavaiable. cant send client");
         // Move the lock_guard outside the erase call to ensure the lock is held during erase
         {
             removeDeadClient(client->clientSocket);
@@ -286,7 +291,7 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
 void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
 {
 
-    std::cout << "sendMessage request called" << std::endl;
+    DBG("sendMessage request called");
     {
         std::lock_guard<std::mutex> lk(fileMutex);
         dbFile.clear();
@@ -301,7 +306,7 @@ void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData
 // broadcasts message to all active clients 
 void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
 {
-    std::cout << " broadcasting" << std::endl;
+    DBG("broadcasting...");
     bool isSent;
     std::vector<SOCKET> deadClients;
     {
@@ -326,7 +331,7 @@ void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
                 deadClients.push_back(client.get()->clientSocket);
             }
         }
-        std::cout << "ended broadcast " << std::endl;
+        DBG("ended broadcast ");
     }
 
 
@@ -365,7 +370,7 @@ bool sockets::server::Server::sendAll(SOCKET s, const char* buf, int len)
 // deletes a client from the client vector of all active clients
 void sockets::server::Server::removeDeadClient(SOCKET s) 
 {
-    std::cout << "removing dead client" << std::endl;
+    DBG("removing dead client");
     std::lock_guard<std::mutex> lk(clientVectorMutex);
     std::erase_if(
         clientVector,
