@@ -24,7 +24,7 @@ the project consists of:
 the "database" is simply a text file on disk:
 
 ```cpp
-#define dbFileDir "C:\\Users\\zohar\\Desktop\\dbFile.txt"
+#define dbFileDir "C:\\Users\\XXXXX\\Desktop\\dbFile.txt"
 ```
 
 ## protocol
