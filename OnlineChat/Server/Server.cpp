@@ -66,7 +66,8 @@ void sockets::server::Server::stop()
 sockets::server::Server::~Server()
 {
     // to avoid leaks, closing the file handle and stopping the serevr on destruction
-    stop();
+    if(running.load())
+        stop();
     if (dbFile.is_open())
         dbFile.close();
 }
@@ -237,7 +238,7 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
         if (!dbFile.is_open())
         {
             DBG("cant open file");
-            return;
+            stop();
         }
 
         dbFile.clear();
@@ -294,6 +295,11 @@ void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData
     DBG("sendMessage request called");
     {
         std::lock_guard<std::mutex> lk(fileMutex);
+        if (!dbFile.is_open())
+        {
+            DBG("cant open file");
+            stop();
+        }
         dbFile.clear();
         dbFile.seekp(0, std::ios::end);
         dbFile << pr.databuffer << std::endl;
