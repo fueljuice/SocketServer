@@ -5,6 +5,8 @@
 #include <mutex>
 #include <thread>
 #include <fstream>
+#include <unordered_map>
+#include <array>
 
 #include "./data/clientSocketData.h"
 #include "AbstractServer.h"
@@ -41,21 +43,26 @@ private:
 	// vector of shared clients to iterate over for broadcast. its shared in order let both the API and the
 	// the vector itself to own and close it
 	std::vector<std::shared_ptr<data::ClientSocketData>> clientVector;
+	// maps username to socketdata
+	std::unordered_map<std::weak_ptr<data::ClientSocketData>, std::string> clientsNameMap;
 
 
 	// accpeting clients
 	void acceptConnection();
-	void onClientAccept(std::shared_ptr<data::ClientSocketData> client);
+	void openThreadForClient(std::shared_ptr<data::ClientSocketData> client);
 
 	// handling the client
 	void handleConnection(std::shared_ptr<data::ClientSocketData> client);
 	void respondToClient(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr);
 
+	// request functions:
+	// 
 	// serving GETCHAT request. sending the entire chat log to client.
 	void getChat(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr);
-
 	// serving sendMessage request. logging a message into the database and sending it to all connected users
 	void sendMessage(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr);
+	// registeration request
+	void registerRequest(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr);
 
 	// util functions
 	void broadcast(const char* msgBuf, int msgLen);

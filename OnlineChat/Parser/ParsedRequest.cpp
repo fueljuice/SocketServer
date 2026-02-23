@@ -1,13 +1,11 @@
 #include "ParsedRequest.h"
-
+#include <iostream>
 messaging::ParsedRequest::ParsedRequest()
 	:
 	dataSize(-1),
 	requestType(INVALIDACTION),
-	statusCode(404),
-	databuffer(nullptr)
-{
-}
+	dataBuffer(nullptr)
+	{}
 
 
 // copy constuctor for std move
@@ -16,14 +14,17 @@ messaging::ParsedRequest::ParsedRequest(ParsedRequest&& other) noexcept
 	:
 	dataSize(other.dataSize),
 	requestType(other.requestType),
-	statusCode(other.statusCode),
-	databuffer(other.databuffer)
+	dataBuffer(other.dataBuffer),
+	userName(other.userName)
 {
 	other.dataSize = -1;
-	other.databuffer = nullptr;
+	other.dataBuffer = nullptr;
+	other.userName = nullptr;
+	other.requestType = action::INVALIDACTION;
 }
 
 messaging::ParsedRequest::~ParsedRequest()
 {
-	delete[] databuffer;
+	delete[] dataBuffer;
+	delete[] userName;
 };

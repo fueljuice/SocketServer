@@ -6,7 +6,7 @@
 #include <string>
 #include <cstdio>
 #include "parsedRequest.h"
-
+#include <algorithm>
 
 /*
  
@@ -26,6 +26,9 @@ the request type should be from 4 - 8 bytes
 
 the data should be the rest of the buffer.
 
+UPDATE:
+
+bytes 8 - 16 of header are username.
 
 
 */
@@ -35,27 +38,25 @@ namespace messaging
 class ParsingProtocol
 {
 public:
-	// constructs using a buffer and its lengtg
-	ParsingProtocol(const char* rawBuf, int rawLength);
-	// constructor that utilize data already gothered
-	ParsingProtocol(messaging::ParsedRequest otherPr, const char* rawBuf, int rawLength);
 
 	// returns a prasedRequest struct with the extarrcted header length
-	ParsedRequest parseHeader();
-
+	static ParsedRequest parseHeader(const char* rawHeader, int rawLength);
 	// returns a prasedRequest struct with the extarcted data 
-	ParsedRequest parseData();
+	static ParsedRequest parseData(ParsedRequest&& pr, char* rawData);
+	// checks wether the request is valid
+	static bool isStatusOK(const ParsedRequest& pr);
+	// checks if header is ok
+	static bool isHeaderOK(const ParsedRequest& pr);
 
 private:
-	const char* rawRequest;
-	const unsigned int rawRequestLength;
-	ParsedRequest pr;
 	// extarcts length of data	
-	void extractLength();
+	static void extractLength(ParsedRequest& pr, const char* rawHeader);
 	// extarcrts request type
-	void extractRequestType();
+	static void extractRequestType(ParsedRequest& pr, const char* rawHeader);
+	// extracts userName
+	static void extractUserName(ParsedRequest& pr, const char* rawHeader);
 	// extacrts data itself
-	void extractData();
+	static void extractData(ParsedRequest& pr, const char* rawData);
 
 };
 }

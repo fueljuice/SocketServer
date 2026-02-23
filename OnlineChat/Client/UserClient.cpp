@@ -1,5 +1,5 @@
 #include "UserClient.h"
-
+constexpr size_t HEADER_SIZE = 16; //16 bytes for header
 
 #define INTSIZE		4
 #ifdef PR_DEBUG
@@ -17,7 +17,7 @@ Client::UserClient::UserClient(int domain, int service, int protocol, int port, 
 
 
 // determines which request user wanted to use
-void Client::UserClient::sendPacket(const char* msg, u_int requestType)
+void Client::UserClient::sendPacket(const char* msg, u_int requestType, const char* userName)
 {
 	DBG("sending");
 	
@@ -28,7 +28,7 @@ void Client::UserClient::sendPacket(const char* msg, u_int requestType)
 		// requestType: getchat = 1, sendmessage = 2
 		case 1:
 		{
-			getChat(requestType);
+			getChat(requestType, userName);
 			break;
 		}
 
@@ -40,7 +40,7 @@ void Client::UserClient::sendPacket(const char* msg, u_int requestType)
 				return;
 			}
 
-			sendMessage(static_cast<u_int>(strlen(msg)), msg, requestType);
+			sendMessage(static_cast<u_int>(strlen(msg)), msg, requestType, userName);
 			break;
 		}
 
@@ -117,7 +117,7 @@ std::string Client::UserClient::recievePacket()
 }
 
 // sendmessage request. sends a message to the server text file
-void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int requestType)
+void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int requestType, const char* userName)
 {
 	DBG("send msg request");
 
@@ -128,7 +128,6 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 		return;
 	}
 
-	constexpr size_t HEADER_SIZE = 2 * INTSIZE; // 8 bytes for header
 
 	// header + message length
 	size_t payloadLength = HEADER_SIZE + msgLength;
@@ -153,7 +152,7 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 }
 
 // requests the entire content for the text file from the server
-void Client::UserClient::getChat(u_int requestType)
+void Client::UserClient::getChat(u_int requestType, const char* userName)
 {
 	DBG("get chat request");
 

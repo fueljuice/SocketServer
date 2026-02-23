@@ -1,7 +1,7 @@
 #include "ConnectingSocket.h"
 
 #ifdef PR_DEBUG
-#define DBG(X) std::cout << X)
+#define DBG(X) std::cout << X
 #else
 #define DBG(X)
 #endif // PR_DEBUG
@@ -26,7 +26,7 @@ void sockets::ConnectingSocket::stopConnection()
 	SOCKET s = getSock();
 	if (s != INVALID_SOCKET)
 	{
-		std::cout << "closing socket in ConnectingSocket class");
+		DBG("closing socket in ConnectingSocket class");
 		shutdown(s, SD_BOTH);
 		closesocket(s);
 		setSock((INVALID_SOCKET));

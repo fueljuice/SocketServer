@@ -1,8 +1,9 @@
 #include "Server.h"
 
-#define dbFileDir   "C:\\Users\\XXXXX\\Desktop\\dbFile.txt"
-#define INTSIZE     4
-#define MAXBYTES    9999
+#define dbFileDir   "C:\\Users\\zohar\\Desktop\\dbFile.txt"
+#define INTSIZE         4
+#define HEADER_SIZE     16
+#define MAXBYTES        9999
 
 #ifdef PR_DEBUG
 #define DBG(X) std::cout << X << std::endl
@@ -34,9 +35,11 @@ void sockets::server::Server::stop()
     DBG("stopped server");
     // stopping the atomic running member
     running.store(false);
+
     // closes the socket listener 
     lstnSocket->stopLisetning();
     {
+        // clearing each socket cached
         std::lock_guard<std::mutex> lk(clientVectorMutex);
         for (auto& c : clientVector)
         {
@@ -85,12 +88,13 @@ void sockets::server::Server::acceptConnection()
     {
         sockaddr clientAddr{};
         addrLen = sizeof(clientAddr);
+
         // async function that waits for a client
         newSock = lstnSocket->acceptCon(
             reinterpret_cast<sockaddr*>(&clientAddr),
             &addrLen);
 
-        DBG("done accept...");
+        DBG("done acceping...");
 
         // in the case of a legit socket
         if (newSock != INVALID_SOCKET)
@@ -103,13 +107,13 @@ void sockets::server::Server::acceptConnection()
                 std::lock_guard<std::mutex> lk(clientVectorMutex);  
                 clientVector.push_back(clientPtr);
             }
-            onClientAccept(clientPtr);
+            openThreadForClient(clientPtr);
         }
     }
 }
 
 // opens a new thread for each client accepted
-void sockets::server::Server::onClientAccept(std::shared_ptr<data::ClientSocketData> client)
+void sockets::server::Server::openThreadForClient(std::shared_ptr<data::ClientSocketData> client)
 {
     // keeps the client threads in a vector, to later join them easily in a loop.
     clientThreads.emplace_back(
@@ -122,73 +126,79 @@ void sockets::server::Server::onClientAccept(std::shared_ptr<data::ClientSocketD
 void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocketData> client)
 {
     int bodyBytes, lengthHeaderBytes, totalrecv = 0;
+
     while(running.load())
     {
-        // recving the entire header. which is 8 bytes (2 * INTSIZE)
+        // recving the entire header
+        std::array<std::byte, HEADER_SIZE> header{};
         lengthHeaderBytes = recv(
             client->clientSocket,
-            client->dataBuf.get(),
-            2 * INTSIZE,
+            reinterpret_cast<char*>(header.data()),
+            static_cast<int>(header.size()),
             MSG_WAITALL
         );
-        if (lengthHeaderBytes != 2 * INTSIZE)
-        {
+        if (lengthHeaderBytes != HEADER_SIZE) // checking it was fully read
+        { 
             removeDeadClient(client->clientSocket);
             break;
         }
 
-        //  parses the header
-        messaging::ParsingProtocol pp(client->dataBuf.get(), 2 * INTSIZE);
-        messaging::ParsedRequest pr = pp.parseHeader();
-        switch(pr.requestType)
+        // parses the header, check if header is OK
+        messaging::ParsedRequest pr = 
+            messaging::ParsingProtocol::parseHeader(
+                reinterpret_cast<const char*>(header.data())
+                , lengthHeaderBytes);
+        if (!messaging::ParsingProtocol::isHeaderOK(pr))      
         {
-            case messaging::GETCHAT:
-            {
-                respondToClient(client, pr);
-                break;
-            }
-
-            default:
-            {
-                // waiting until the entire meessage arrives using the length 
-                // we got and the MSG_WAITALL flag
-                DBG("recving from client");
-                bodyBytes = recv(
-                    client->clientSocket,
-                    client->dataBuf.get(),
-                    pr.dataSize, // the recv expects the body itself
-                    MSG_WAITALL
-                );
-                DBG("done rcev");
-                // sucsessful read. storing data and responding.
-                if (bodyBytes > 0)
-                {
-                    client.get()->lenData = bodyBytes;
-                    respondToClient(client, pr);
-                }
-                else
-                {
-                    DBG("recv failed: ");
-                    removeDeadClient(client->clientSocket);
-                    return;
-                }
-                break;
-            }
+            DBG("HEADER ERROR");
+            removeDeadClient(client->clientSocket);
+            return;
         }
+
+        // skip reading if there is no data
+        if (pr.dataSize == 0)
+        {
+            client->lenData = 0;
+            respondToClient(client, pr); 
+            continue;
+        }
+        
+        // waiting until the entire meessage arrives using the length 
+        // MSG_WAITALL flag to wait for all the message to arrive
+        DBG("recving data from client");
+        bodyBytes = recv(
+            client->clientSocket,
+            client->dataBuf.get(),
+            pr.dataSize, // the recv expects the body itself
+            MSG_WAITALL
+        );
+
+        DBG("done rcev data");
+        // sucsessful read. storing data and responding.
+        if (bodyBytes < 0)
+        {
+            DBG("recv failed");
+            removeDeadClient(client->clientSocket);
+            return;
+        }
+        client.get()->lenData = bodyBytes;
+        respondToClient(client, pr);
+   
     }
 
 }
 
 // prases the data and detremines which request to serve
-void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
+void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& oldPr)
 {
 
     DBG("responding to client...");
+    DBG("pr: " << oldPr.dataSize << " dataSize. reqType: "<< oldPr.requestType);
     // parsing with the previous header as parameter 
-    messaging::ParsingProtocol pp(std::move(pr), client.get()->dataBuf.get(), client.get()->lenData);
     // getting the new parsed request with data
-    messaging::ParsedRequest refinedPr = pp.parseData();
-    if (refinedPr.statusCode != 200)
+    messaging::ParsedRequest refinedPr = 
+        messaging::ParsingProtocol::parseData(std::move(oldPr), client->dataBuf.get());
+    if (!messaging::ParsingProtocol::isStatusOK(refinedPr))
     {
         DBG("STATUS CODE BAD 404");
         return;
@@ -200,7 +210,7 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
     {
 
         // sendmessage request
-        case messaging::SENDMESSAGE:
+    case messaging::action::SENDMESSAGE:
         {
             DBG("send message request");
             sendMessage(client, refinedPr);
@@ -208,18 +218,25 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
         }
 
         // get chat request
-        case messaging::GETCHAT:
+    case messaging::action::GETCHAT:
         {
             DBG("get chat request");
             getChat(client, refinedPr);
             break;
         }
 
-        default:
-        {
+    case messaging::action::REGISTER:
+    {
+        DBG("register request");
+        getChat(client, refinedPr);
+        break;
+    }
+
+    default:
+    {
             DBG("BAD REQUEST TYPE");
             break;
-        }
+    }
   
     }
 }
@@ -291,7 +308,7 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
 // reads a message from the client to the data base file. and brodcasts the update to all active users
 void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
 {
-
+    if(clientsNameMap[client].empty())
     DBG("sendMessage request called");
     {
         std::lock_guard<std::mutex> lk(fileMutex);
@@ -302,10 +319,19 @@ void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData
         }
         dbFile.clear();
         dbFile.seekp(0, std::ios::end);
-        dbFile << pr.databuffer << std::endl;
+        dbFile << clientsNameMap[client] << ": " << pr.dataBuffer << std::endl;
         dbFile.flush();
     }
-    broadcast(pr.databuffer, pr.dataSize);
+    broadcast(pr.dataBuffer, pr.dataSize);
+
+}
+
+void sockets::server::Server::registerRequest(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
+{
+    DBG("start regitering");
+    clientsNameMap[client] = std::string(pr.dataBuffer, pr.dataSize);
+
+
 
 }
 
@@ -372,6 +398,7 @@ bool sockets::server::Server::sendAll(SOCKET s, const char* buf, int len)
     }
     return true;
 }
+
 
 // deletes a client from the client vector of all active clients
 void sockets::server::Server::removeDeadClient(SOCKET s) 

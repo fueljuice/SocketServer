@@ -8,6 +8,7 @@ namespace messaging
 		INVALIDACTION = -1,
 		GETCHAT = 1,
 		SENDMESSAGE = 2,
+		REGISTER = 3
 
 	};
 
@@ -15,8 +16,8 @@ namespace messaging
 	{
 		int dataSize;
 		action requestType;
-		unsigned int statusCode;
-		char* databuffer = { 0 };
+		char* dataBuffer = { 0 };
+		char* userName = { 0 };
 
 		ParsedRequest();
 

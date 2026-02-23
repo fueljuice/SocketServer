@@ -80,5 +80,8 @@
     <ClInclude Include="Parser\ParsedRequest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Server\data\ClientSocketData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,76 +1,67 @@
 #include "ParsingProtocol.h"
 #define  INTSIZE	4
+# define HEADER_SIZE	16
 #ifdef PR_DEBUG
 #define DBG(X) std::cout << X << std::endl
 #else
 #define DBG(X)
 #endif // PR_DEBUG
 
-// a constructor overcload that construcrts with a brand new buffer and its length
-messaging::ParsingProtocol::ParsingProtocol(const char* rawBuf, int rawLength)
-	: 
-	rawRequest(rawBuf),
-	rawRequestLength(rawLength)
-	{
-	DBG("ctor of parsingProtocol called with rawbuf and rawlength");
-
-		pr.statusCode = 200;
-	}
-
-// a constructor overcload that gets a ParsedRequest and copies its data into the members.
-// together with a new buff from the client, and its length
-messaging::ParsingProtocol::ParsingProtocol(messaging::ParsedRequest otherPr, const char* rawBuf, int rawLength)
-	: 
-	pr(std::move(otherPr)),
-	rawRequest(rawBuf),
-	rawRequestLength(rawLength)
-	{
-	pr.statusCode = 200;
-	DBG("ctor of parsingProtocol called with parsed request" );
 
 
-	}
-
-
-
-// extracts header, data length and request type, into the parsedRequest struct member
-messaging::ParsedRequest messaging::ParsingProtocol::parseHeader()
+// extracts header
+messaging::ParsedRequest messaging::ParsingProtocol::parseHeader(const char* rawHeader, int rawLength)
 {
+	DBG("parsing header");
+	ParsedRequest pr;
+	DBG("rawLength: " << rawLength);
+	if (rawLength != HEADER_SIZE)
+		return pr;
 
-	// extract the length only if it wasnt only already extracted and if the buffer is big enough
-	if (pr.dataSize == -1 && rawRequestLength >= INTSIZE)
-		extractLength();
+	extractLength(pr, rawHeader);
+	extractRequestType(pr, rawHeader);
+	extractUserName(pr, rawHeader);
 
-	// extract the request type only if it wasnt only extracted and if the raw buffer is big enough
-	if (pr.requestType == INVALIDACTION && rawRequestLength >= 2 * INTSIZE)
-		extractRequestType();
-
-	// invalidtaes bad requests
-	if (static_cast<int>(pr.requestType) < 1 || static_cast<int>(pr.requestType) > 2)
-	{
-		DBG("BAD 404 IN THE PARSING" );
-		pr.statusCode = 404;
-	}
-
-	return std::move(pr);
+	return pr;
 }
 
-// extracts data, only works if header is already initiallized
-messaging::ParsedRequest messaging::ParsingProtocol::parseData()
+// extracts data
+messaging::ParsedRequest messaging::ParsingProtocol::parseData(ParsedRequest&& pr, char* rawData)
 {
+	DBG("parsing data");
 	// check for valid conditions to extract data
-	if (pr.requestType == SENDMESSAGE && pr.dataSize > -1)
-		extractData();
-	else
-		DBG("must parse header first");
+	if (pr.requestType != INVALIDACTION && pr.dataSize > 0)
+		extractData(pr, rawData);
+	return pr;
+}
 
+bool messaging::ParsingProtocol::isStatusOK(const ParsedRequest& pr)
+{
+	// must have username
+	if (pr.userName == nullptr)
+		return false;
+	DBG("username OK");
 
-	return std::move(pr);
+	// GETCHAT
+	if (pr.requestType == action::GETCHAT && pr.dataSize == 0) return true;
+
+	// SENDMESSAGE
+	else if (pr.requestType == action::SENDMESSAGE && pr.dataSize > 0 && pr.dataBuffer != nullptr) return true;
+
+	// REGISTERATE
+	else if (pr.requestType == action::REGISTER && pr.dataSize > 0 && pr.dataBuffer != nullptr) return true;
+
+	return false;
+}
+
+bool messaging::ParsingProtocol::isHeaderOK(const ParsedRequest& pr)
+{
+	return (pr.userName != nullptr && pr.dataSize > -1 && pr.requestType != action::INVALIDACTION);
 }
 
 
 // extracts length of the data from the header into the ParsingProtocol
-void messaging::ParsingProtocol::extractLength()
+void messaging::ParsingProtocol::extractLength(ParsedRequest& pr, const char* rawHeader)
 {
 	char* endptr;
 	int length;
@@ -80,7 +71,7 @@ void messaging::ParsingProtocol::extractLength()
 	
 	
 	// reads for bytes and converts them into int
-	memcpy(charLength, rawRequest, INTSIZE);
+	memcpy(charLength, rawHeader, INTSIZE);
 	DBG("after mem copy: " + std::string(charLength));
 	length = strtol(charLength, &endptr, 10);
 
@@ -89,29 +80,25 @@ void messaging::ParsingProtocol::extractLength()
 	if (endptr == charLength)
 	{
 		DBG("couldnt convert char length to int");
-		pr.dataSize = -1;
+		return;
 	}
-	else
-	{
-		pr.dataSize = length;
-		DBG("int value of length: ");
-	}
+
+	pr.dataSize = length;
+	DBG("int value of length: ");
+	
 
 }
 
 // extracts request type from header to
-void messaging::ParsingProtocol::extractRequestType()
+void messaging::ParsingProtocol::extractRequestType(ParsedRequest& pr, const char* rawHeader)
 {
+	constexpr unsigned int reqTypeOffset = INTSIZE;
 	DBG("EXTRACTING REQUEST TYPE..");
-	DBG("raw request: " + std::string(rawRequest));
-
-
 	action reqType;
 	char reqTypeChar[INTSIZE + 1] = {0};
-	unsigned int reqTypeOffset = INTSIZE;
 	
 	// memcopies and atoi
-	memcpy(reqTypeChar, rawRequest + reqTypeOffset, INTSIZE);
+	memcpy(reqTypeChar, rawHeader + reqTypeOffset, INTSIZE);
 	reqType = static_cast<action>(atoi(reqTypeChar));
 
 
@@ -127,33 +114,30 @@ void messaging::ParsingProtocol::extractRequestType()
 	}
 
 }
-// extracts data into parsedrequest struct
-void messaging::ParsingProtocol::extractData()
+void messaging::ParsingProtocol::extractUserName(ParsedRequest& pr, const char* rawHeader)
 {
-	constexpr unsigned int HEADER_SIZE = 2 * INTSIZE; 
-	int offset = 0;
-	// checking if the header is inside the request and moving the offset accordingly
-	if (pr.dataSize == rawRequestLength)
-		// if no header, no offset for the data
-		offset = 0; 
+	constexpr unsigned int userNameOffset = 2*INTSIZE;
 
-	else if (pr.dataSize + HEADER_SIZE == rawRequestLength)
-		// if the header is inside the request, the offset is from the end of the header
-		offset = HEADER_SIZE;
+	DBG("extracting userName");
+	// creating data buffer
+	pr.userName = new char[2*INTSIZE + 1];
+	pr.userName[2*INTSIZE] = '\0';
+	// copying
+	memcpy(pr.userName, rawHeader + userNameOffset, 2*INTSIZE);
+}
 
-	else
-	{
-		// unkokn length, dont read anything
-		DBG("invalid request length" );
-		return;
-	}
 
-	DBG("extracting data.... datasize: " << pr.dataSize );
+// extracts data into parsedrequest struct
+void messaging::ParsingProtocol::extractData(ParsedRequest& pr, const char* rawData)
+{
+	DBG("extracting data.... datasize: " << pr.dataSize);
 
-	//copying a new buffer
-	pr.databuffer = new char[pr.dataSize + 1];
-	memcpy(pr.databuffer, rawRequest + offset, pr.dataSize);
-	pr.databuffer[pr.dataSize] = '\0';
+	// creating data buffer
+	pr.dataBuffer = new char[pr.dataSize + 1];
+	pr.dataBuffer[pr.dataSize] = '\0';
+	// copying
+	memcpy(pr.dataBuffer, rawData, pr.dataSize);
+
 
 }
 

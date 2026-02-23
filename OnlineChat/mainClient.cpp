@@ -61,7 +61,7 @@ int Clientmain()
         {
             std::cout << "sending getchat request..." << std::endl;
             // request type 1, empty body
-            client.sendPacket("", 1);
+            client.sendPacket("", 1, "userName");
             // receive and handle server response
             client.recievePacket();
             break;
@@ -80,7 +80,7 @@ int Clientmain()
 
             std::cout << "sending message..." << std::endl;
             // request type 2, message as body
-            client.sendPacket(msg.c_str(), 2);
+            client.sendPacket(msg.c_str(), 2, "UserName");
             // receive and handle server response (if your protocol expects one)
             client.recievePacket();
             break;

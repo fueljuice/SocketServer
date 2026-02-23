@@ -1,7 +1,7 @@
 #include "ListeningSocket.h"
 
 #ifdef PR_DEBUG
-#define DBG(X) DBG(X)
+#define DBG(X) std::cout << X
 #else
 #define DBG(X)
 #endif // PR_DEBUG
