@@ -131,11 +131,12 @@
   <ItemGroup>
     <ClCompile Include="Client\AbstractClient.cpp" />
     <ClCompile Include="mainClient.cpp" />
+    <ClCompile Include="Parser\ParsingProtocol.cpp" />
     <ClCompile Include="Server\data\ClientSocketData.cpp" />
     <ClCompile Include="Client\UserClient.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser\ParsedRequest.cpp" />
-    <ClCompile Include="Parser\ParsingProtocol.cpp" />
+    <ClCompile Include="Parser\ServerProtocol.cpp" />
     <ClCompile Include="Server\AbstractServer.cpp" />
     <ClCompile Include="Server\Server.cpp" />
     <ClCompile Include="Sockets\ConnectingSocket.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="Client\UserClient.h" />
     <ClInclude Include="Parser\ParsedRequest.h" />
     <ClInclude Include="Parser\ParsingProtocol.h" />
+    <ClInclude Include="Parser\ServerProtocol.h" />
     <ClInclude Include="Server\AbstractServer.h" />
     <ClInclude Include="Server\data\ClientSocketData.h" />
     <ClInclude Include="Server\Server.h" />

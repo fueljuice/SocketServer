@@ -17,7 +17,7 @@ sockets::server::Server::Server(int domain, int service, int protocol,
     : AbstractServer(domain, service, protocol,
         port, network_interaface, backlog)
 {
-    DBG("init Server");
+    DBG("init Server.");
     // opens a handle to the file which is used as the database.
     dbFile.open(dbFileDir, std::ios::in | std::ios::out | std::ios::app);
 }
@@ -145,10 +145,10 @@ void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocke
 
         // parses the header, check if header is OK
         messaging::ParsedRequest pr = 
-            messaging::ParsingProtocol::parseHeader(
+            messaging::ServerProtocol::parseHeader(
                 reinterpret_cast<const char*>(header.data())
                 , lengthHeaderBytes);
-        if (!messaging::ParsingProtocol::isHeaderOK(pr))      
+        if (!messaging::ServerProtocol::isHeaderOK(pr))      
         {
             DBG("HEADER ERROR");
             removeDeadClient(client->clientSocket);
@@ -197,8 +197,8 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
     // parsing with the previous header as parameter 
     // getting the new parsed request with data
     messaging::ParsedRequest refinedPr = 
-        messaging::ParsingProtocol::parseData(std::move(oldPr), client->dataBuf.get());
-    if (!messaging::ParsingProtocol::isStatusOK(refinedPr))
+        messaging::ServerProtocol::parseData(std::move(oldPr), client->dataBuf.get());
+    if (!messaging::ServerProtocol::isStatusOK(refinedPr))
     {
         DBG("STATUS CODE BAD 404");
         return;
@@ -219,24 +219,24 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
 
         // get chat request
     case messaging::action::GETCHAT:
-        {
+    {
             DBG("get chat request");
             getChat(client, refinedPr);
             break;
-        }
+    }
 
     case messaging::action::REGISTER:
-    {
+        {
         DBG("register request");
-        getChat(client, refinedPr);
+        registerRequest(client, refinedPr);
         break;
-    }
+        }
 
     default:
-    {
-            DBG("BAD REQUEST TYPE");
-            break;
-    }
+        {
+        DBG("BAD REQUEST TYPE");
+        break;
+        }
   
     }
 }
@@ -308,7 +308,19 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
 // reads a message from the client to the data base file. and brodcasts the update to all active users
 void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
 {
-    if(clientsNameMap[client].empty())
+    // checking if the client is registered
+    if(clientsNameMap[client->clientSocket].empty())
+    {
+		const char* msg = "Please register before sending messages.";
+        sendAll(client->clientSocket, "Please register first", 22);(
+            client->clientSocket,
+            msg,
+            static_cast<int>(strlen(msg))
+			);
+        return;
+	}
+
+    // writing the message to the file
     DBG("sendMessage request called");
     {
         std::lock_guard<std::mutex> lk(fileMutex);
@@ -319,20 +331,42 @@ void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData
         }
         dbFile.clear();
         dbFile.seekp(0, std::ios::end);
-        dbFile << clientsNameMap[client] << ": " << pr.dataBuffer << std::endl;
+        dbFile << clientsNameMap[client->clientSocket] << ": " << pr.dataBuffer << std::endl;
         dbFile.flush();
     }
+    // broadcasting the message
     broadcast(pr.dataBuffer, pr.dataSize);
 
 }
 
 void sockets::server::Server::registerRequest(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
 {
+    // checking if the client is already registered
+    if(!clientsNameMap[client->clientSocket].empty())
+    {
+        const char* msg = "You are already registered.";
+        sendAll(client->clientSocket, msg, static_cast<int>(strlen(msg)));
+        return;
+	}
     DBG("start regitering");
-    clientsNameMap[client] = std::string(pr.dataBuffer, pr.dataSize);
+    
+    // check for duplicate usernames
+    std::string requestedUsername(pr.dataBuffer, pr.dataSize);
+    for (const auto& [socket, username] : clientsNameMap)
+    {
+        if (username == requestedUsername)
+        {
+            const char* msg = "Username already taken. Please choose a different username.";
+            sendAll(client->clientSocket, msg, static_cast<int>(strlen(msg)));
+            return;
+        }
+    }
 
+    clientsNameMap[client->clientSocket] = requestedUsername;
 
-
+    // send success message
+    const char* successMsg = "Registration successful.";
+    sendAll(client->clientSocket, successMsg, static_cast<int>(strlen(successMsg)));
 }
 
 // broadcasts message to all active clients 
@@ -405,15 +439,18 @@ void sockets::server::Server::removeDeadClient(SOCKET s)
 {
     DBG("removing dead client");
     std::lock_guard<std::mutex> lk(clientVectorMutex);
+    // remove client from vector
     std::erase_if(
         clientVector,
 
         [s](const std::shared_ptr<data::ClientSocketData>& p)
         {
-        if (p && p->clientSocket == s) // lambda that checks if the client struct holds the socket s
+        if (p && p->clientSocket == s) 
         {
             return true;
         }
         return false;
     });
+	// remove client from name map
+	clientsNameMap.erase(s);
 }

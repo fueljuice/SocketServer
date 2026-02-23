@@ -1,4 +1,4 @@
-#include "ParsingProtocol.h"
+#include "ServerProtocol.h"
 #define  INTSIZE	4
 # define HEADER_SIZE	16
 #ifdef PR_DEBUG
@@ -10,7 +10,7 @@
 
 
 // extracts header
-messaging::ParsedRequest messaging::ParsingProtocol::parseHeader(const char* rawHeader, int rawLength)
+messaging::ParsedRequest messaging::ServerProtocol::parseHeader(const char* rawHeader, int rawLength)
 {
 	DBG("parsing header");
 	ParsedRequest pr;
@@ -26,7 +26,7 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseHeader(const char* raw
 }
 
 // extracts data
-messaging::ParsedRequest messaging::ParsingProtocol::parseData(ParsedRequest&& pr, char* rawData)
+messaging::ParsedRequest messaging::ServerProtocol::parseData(ParsedRequest&& pr, char* rawData)
 {
 	DBG("parsing data");
 	// check for valid conditions to extract data
@@ -35,7 +35,7 @@ messaging::ParsedRequest messaging::ParsingProtocol::parseData(ParsedRequest&& p
 	return pr;
 }
 
-bool messaging::ParsingProtocol::isStatusOK(const ParsedRequest& pr)
+bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr)
 {
 	// must have username
 	if (pr.userName == nullptr)
@@ -54,14 +54,14 @@ bool messaging::ParsingProtocol::isStatusOK(const ParsedRequest& pr)
 	return false;
 }
 
-bool messaging::ParsingProtocol::isHeaderOK(const ParsedRequest& pr)
+bool messaging::ServerProtocol::isHeaderOK(const ParsedRequest& pr)
 {
 	return (pr.userName != nullptr && pr.dataSize > -1 && pr.requestType != action::INVALIDACTION);
 }
 
 
-// extracts length of the data from the header into the ParsingProtocol
-void messaging::ParsingProtocol::extractLength(ParsedRequest& pr, const char* rawHeader)
+// extracts length of the data from the header into the ServerProtocol
+void messaging::ServerProtocol::extractLength(ParsedRequest& pr, const char* rawHeader)
 {
 	char* endptr;
 	int length;
@@ -90,7 +90,7 @@ void messaging::ParsingProtocol::extractLength(ParsedRequest& pr, const char* ra
 }
 
 // extracts request type from header to
-void messaging::ParsingProtocol::extractRequestType(ParsedRequest& pr, const char* rawHeader)
+void messaging::ServerProtocol::extractRequestType(ParsedRequest& pr, const char* rawHeader)
 {
 	constexpr unsigned int reqTypeOffset = INTSIZE;
 	DBG("EXTRACTING REQUEST TYPE..");
@@ -114,7 +114,7 @@ void messaging::ParsingProtocol::extractRequestType(ParsedRequest& pr, const cha
 	}
 
 }
-void messaging::ParsingProtocol::extractUserName(ParsedRequest& pr, const char* rawHeader)
+void messaging::ServerProtocol::extractUserName(ParsedRequest& pr, const char* rawHeader)
 {
 	constexpr unsigned int userNameOffset = 2*INTSIZE;
 
@@ -128,7 +128,7 @@ void messaging::ParsingProtocol::extractUserName(ParsedRequest& pr, const char* 
 
 
 // extracts data into parsedrequest struct
-void messaging::ParsingProtocol::extractData(ParsedRequest& pr, const char* rawData)
+void messaging::ServerProtocol::extractData(ParsedRequest& pr, const char* rawData)
 {
 	DBG("extracting data.... datasize: " << pr.dataSize);
 
@@ -140,4 +140,3 @@ void messaging::ParsingProtocol::extractData(ParsedRequest& pr, const char* rawD
 
 
 }
-

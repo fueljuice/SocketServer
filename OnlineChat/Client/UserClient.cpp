@@ -12,7 +12,7 @@ Client::UserClient::UserClient(int domain, int service, int protocol, int port, 
 	:
 	AbstractClient(domain, service, protocol, port, network_interface)
 {
-	DBG("UserClient ctor called ");
+	DBG("UserClient ctor called. ");
 }
 
 
@@ -150,6 +150,46 @@ void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int req
 	DBG("isSent: " << isSent);
 	delete[] payload;
 }
+
+
+void Client::UserClient::registerRequest(u_int msgLength, const char* msg, u_int requestType, const char* name)
+{
+	DBG("send msg request");
+
+	// if thers no space to pass it in 4 bytes
+	if (msgLength > 9999)
+	{
+		std::cerr << " length too long" << std::endl;
+		return;
+	}
+
+	constexpr size_t HEADER_SIZE = 16; // 8 bytes for header
+
+	// header + message length
+	size_t payloadLength = HEADER_SIZE + msgLength;
+
+	char headerBuf[HEADER_SIZE + 1] = { 0 };
+	char* payload = new char[payloadLength];
+
+
+	// write header (8 bytes  for sprintf_s)
+	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", INTSIZE, msgLength, INTSIZE, requestType);
+
+	// write name to header
+	memcpy(headerBuf + 8, name, 2 * INTSIZE);
+	// copy header to payload
+	memcpy(payload, headerBuf, HEADER_SIZE);
+
+	// copy the message after the header
+	memcpy(payload + HEADER_SIZE, msg, msgLength);
+
+
+	bool isSent = sendAll(conSocket.get()->getSock(), payload, static_cast<u_int>(payloadLength));
+	DBG("isSent: " << isSent);
+	delete[] payload;
+
+}
+
 
 // requests the entire content for the text file from the server
 void Client::UserClient::getChat(u_int requestType, const char* userName)

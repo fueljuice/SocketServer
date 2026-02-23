@@ -10,7 +10,7 @@
 
 #include "./data/clientSocketData.h"
 #include "AbstractServer.h"
-#include "../Parser/ParsingProtocol.h"
+#include "../Parser/ServerProtocol.h"
 
 
 
@@ -44,7 +44,7 @@ private:
 	// the vector itself to own and close it
 	std::vector<std::shared_ptr<data::ClientSocketData>> clientVector;
 	// maps username to socketdata
-	std::unordered_map<std::weak_ptr<data::ClientSocketData>, std::string> clientsNameMap;
+	std::unordered_map<SOCKET, std::string> clientsNameMap;
 
 
 	// accpeting clients
@@ -56,7 +56,6 @@ private:
 	void respondToClient(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr);
 
 	// request functions:
-	// 
 	// serving GETCHAT request. sending the entire chat log to client.
 	void getChat(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr);
 	// serving sendMessage request. logging a message into the database and sending it to all connected users

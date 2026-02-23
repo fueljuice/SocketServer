@@ -24,7 +24,7 @@
     <ClCompile Include="Client\UserClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Parser\ParsingProtocol.cpp">
+    <ClCompile Include="Parser\ServerProtocol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Server\AbstractServer.cpp">
@@ -59,7 +59,7 @@
     <ClInclude Include="Client\UserClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Parser\ParsingProtocol.h">
+    <ClInclude Include="Parser\ServerProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Server\AbstractServer.h">
