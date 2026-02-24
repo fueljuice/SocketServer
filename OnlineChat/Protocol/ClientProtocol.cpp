@@ -1,5 +1,6 @@
 #include "ClientProtocol.h"
 #include "ProtocolConstants.h"
+#include "../Client/ClientExceptions.h"
 
 #ifdef PR_DEBUG
 #define DBG(X) std::cout << X << std::endl
@@ -13,7 +14,8 @@ messaging::ParsedResponse messaging::ClientProtocol::parseHeader(const char* raw
 	if (rawLength != RESPONSE_HEADER_SIZE)
 	{
 		DBG("obsufcated response header");
-		return pr;
+		throw Client::InvalidHeaderException("header size mismatch: expected " + std::to_string(RESPONSE_HEADER_SIZE) 
+			+ "bytes and only got: " + std::to_string(rawLength));
 	}
 	extractLength(pr, rawHeader, rawLength);
 	return pr;
@@ -23,9 +25,8 @@ messaging::ParsedResponse messaging::ClientProtocol::parseData(ParsedResponse&& 
 {
 	DBG("parsing data");
 	if (pr.dataSize == -1)
-	{
 		return pr;
-	}
+
 	pr.dataBuffer.reserve(pr.dataSize);
 	pr.dataBuffer.assign(rawData, rawData + pr.dataSize);
 	return pr;
@@ -78,15 +79,22 @@ void messaging::ClientProtocol::extractLength(ParsedResponse& pr, const char* ra
 	char* endptr;
 	intLength = strtol(rawHeader, &endptr, 10);
 
-	// if the length header is invalid, returns an empty string
+	// if the length header is invalid, throw exception
 	if (rawHeader == endptr || rawLength <= 0)
 	{
 		DBG("failed extract length from header ");
-		return;
+		throw Client::InvalidHeaderException("Failed to extract length from header");
 	}
+	
+	// check if length is ok
+	if (intLength < 0 || intLength > MAX_MESSAGE_LENGTH)
+	{
+		DBG("invalid length value: " << intLength);
+		throw Client::InvalidHeaderException("Invalid length value: " + std::to_string(intLength));
+	}
+	
 	pr.dataSize = intLength;
 	DBG("sucsess length extraction :" << intLength);
-
 }
 
 

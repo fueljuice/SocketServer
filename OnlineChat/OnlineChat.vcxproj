@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\AbstractClient.h" />
+    <ClInclude Include="Client\ClientExceptions.h" />
     <ClInclude Include="Client\UserClient.h" />
     <ClInclude Include="Protocol\ParsedResponse.h" />
     <ClInclude Include="Protocol\ClientProtocol.h" />

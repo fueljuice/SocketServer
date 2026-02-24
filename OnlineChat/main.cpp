@@ -19,23 +19,20 @@ int main()
     {
         sockets::server::Server server(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT, INADDR_ANY, SOMAXCONN);
 
-        std::cout << "Starting TestServer on port " << PORT << "...\n";
+        std::cout << "Starting TestServer on port " << PORT << std::endl;
         server.launch();
 
-        std::cout << "Server running. Press <Enter> to stop.\n";
+        std::cout << "Server running. Press <Enter> to stop." << std::endl;
         std::cin.get();
 
         server.stop();
     }
     catch (const std::exception& ex) 
     {
-        std::cerr << "Exception in server: " << ex.what() << "\n";
+        std::cerr << "Exception in server: " << ex.what() << std::endl;
     }
 
-    std::cout << "Server exited.\n";
+    std::cout << "Server exited." << std::endl;
     return 0;
 
 }
-// TODO: Change the Interface names to Abstract
-// TODO: Fix lacking parsing algorithim
-// TODO: Add comments

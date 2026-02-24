@@ -98,7 +98,7 @@ void sockets::server::Server::acceptConnection()
         if (newSock != INVALID_SOCKET)
         {
             DBG("accepted valid socket");
-            auto clientPtr = std::make_shared<data::ClientSocketData>(newSock, clientAddr, messaging::MAX_CLIENT_BYTES);
+            auto clientPtr = std::make_shared<data::ClientSocketData>(newSock, clientAddr);
             {
                 // locking before pushing the socket of the client into the list of clients.
                 // the list is later used to brod
@@ -158,6 +158,7 @@ void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocke
         
         // waiting until the entire meessage arrives using the length 
         // MSG_WAITALL flag to wait for all the message to arrive
+        client->initData(pr.dataSize);
         DBG("recving data from client");
         bodyBytes = recv(
             client->clientSocket,

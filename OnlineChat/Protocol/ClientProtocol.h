@@ -7,6 +7,7 @@
 #include <array>
 #include "ProtocolConstants.h"
 #include "ParsedResponse.h"
+#include "../Client/ClientExceptions.h"
 namespace messaging
 {
 
