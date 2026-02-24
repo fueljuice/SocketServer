@@ -129,10 +129,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Protocol\ClientProtocol.cpp" />
     <ClCompile Include="Client\AbstractClient.cpp" />
     <ClCompile Include="mainClient.cpp" />
-    <ClCompile Include="Protocol\ParsedResponse.cpp" />
-    <ClCompile Include="Protocol\ClientProtocol.cpp" />
     <ClCompile Include="Server\data\ClientSocketData.cpp" />
     <ClCompile Include="Client\UserClient.cpp" />
     <ClCompile Include="main.cpp" />
@@ -145,12 +144,10 @@
     <ClCompile Include="Sockets\SimpleSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Protocol\ClientProtocol.h" />
     <ClInclude Include="Client\AbstractClient.h" />
     <ClInclude Include="Client\UserClient.h" />
-    <ClInclude Include="Protocol\ParsedResponse.h" />
-    <ClInclude Include="Protocol\ClientProtocol.h" />
     <ClInclude Include="Protocol\ParsedRequest.h" />
-    <ClInclude Include="Protocol\ProtocolConstants.h" />
     <ClInclude Include="Protocol\ServerProtocol.h" />
     <ClInclude Include="Server\AbstractServer.h" />
     <ClInclude Include="Server\data\ClientSocketData.h" />

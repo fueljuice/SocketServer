@@ -16,9 +16,9 @@ public:
 	AbstractClient(const AbstractClient&) = delete;
 	AbstractClient& operator=(const AbstractClient&) = delete;
 
-	virtual void sendPacket(const char* msg, u_int requestType, const char* name) = 0;
+	virtual void sendRequest(const char* msg, u_int requestType, const char* name) = 0;
 
-	virtual std::string recievePacket() = 0;
+	virtual std::string recieveResponse() = 0;
 
 protected:
 	// a socket that connects to a server. uncopyable to avoid dobule close

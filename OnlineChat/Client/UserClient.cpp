@@ -1,7 +1,5 @@
 #include "UserClient.h"
-constexpr size_t HEADER_SIZE = 16; //16 bytes for header
-
-#define INTSIZE		4
+#include "../Protocol/ProtocolConstants.h"
 #ifdef PR_DEBUG
 #define DBG(X) std::cout << X << std::endl
 #else
@@ -17,205 +15,77 @@ Client::UserClient::UserClient(int domain, int service, int protocol, int port, 
 
 
 // determines which request user wanted to use
-void Client::UserClient::sendPacket(const char* msg, u_int requestType, const char* userName)
+void Client::UserClient::sendRequest(const char* msg, u_int requestType, const char* userName)
 {
 	DBG("sending");
-	
-	// switching request type
-	switch (requestType)
-	{
+	sendRequestInternal(static_cast<u_int>(strlen(msg)), msg, requestType, userName);
+}
 
-		// requestType: getchat = 1, sendmessage = 2
-		case 1:
-		{
-			getChat(requestType, userName);
-			break;
-		}
-
-		case 2:
-		{
-			if (!msg) 
-			{
-				std::cerr << "message cant be null with sendmessage request" << std::endl;
-				return;
-			}
-
-			sendMessage(static_cast<u_int>(strlen(msg)), msg, requestType, userName);
-			break;
-		}
-
-		default:
-		{
-			DBG("failed to identify request");
-
-			return;
-		}
-	}
+void Client::UserClient::sendRequestInternal(u_int msgLength, const char* msg, u_int requestType, const char* userName)
+{
+	// construct request
+	std::string payload = messaging::ClientProtocol::constructRequest(msgLength, msg, requestType, userName);
+	// send it
+	bool isSent = sendAll(conSocket.get()->getSock(), payload.c_str(), payload.size());
+	DBG("is sent?: " << isSent);
 }
 
 // recving the answer from the server
-std::string Client::UserClient::recievePacket()
+std::string Client::UserClient::recieveResponse()
 {
-	int intLength, bytesRead;
-	char* endptr, * msgBuf;
-	char lengthBuf[INTSIZE + 1] = { 0 };
+	int bytesRead;
+	char* endptr, * msgBuf = { 0 };
+	std::array<std::byte, messaging::RESPONSE_HEADER_SIZE> header{};
 	std::string stringMsg;
 
-	// recving the length header
 	DBG("recving packet");
 
-	//recving from server the header for the length
-	bytesRead = recv(conSocket.get()->getSock(), lengthBuf, INTSIZE, MSG_WAITALL);
+	// recving from server the header for the length
+	bytesRead = recv(
+		conSocket.get()->getSock(),
+		reinterpret_cast<char*>(header.data()),
+		messaging::REQUEST_DATA_LENGTH_SIZE,
+		MSG_WAITALL);
 
-	// making sure it read
-	if (bytesRead != INTSIZE) 
+	// extracting header
+	messaging::ParsedResponse pr =
+		messaging::ClientProtocol::parseHeader(
+			reinterpret_cast<const char*>(header.data()),
+			bytesRead
+		);
+
+
+	DBG("data size from header: " << pr.dataSize);
+
+
+	// if header is invalid
+	if (pr.dataSize == -1)
 	{
-		DBG("failed to read length header");
-		return {};
+		DBG("invalid header");
+		return "server returned invalid header";
 	}
 
+	// recving data if there it exists.
+	if (pr.dataSize == 0)
+		return "server responded only header";
 
 
-	DBG("recved bytes :" << bytesRead);
-	DBG("length buf :" << lengthBuf);
-
-	intLength = strtol(lengthBuf, &endptr, 10);
-
-	// if the length header is invalid, returns an empty string
-	if (lengthBuf == endptr || bytesRead <= 0)
-	{
-		DBG("failed extract length from header ");
-
-		return {};
-
-	}
-	DBG("sucsess length extraction :" << bytesRead);
-
-	// allocates a message at the size of the length got from the header
-	msgBuf = new char[intLength + 1];
-
-
-	bytesRead = recv(conSocket.get()->getSock(), msgBuf, intLength, MSG_WAITALL);
-	if (bytesRead != intLength) 
-	{
-		DBG("failed to read full message body, bytesRead=" << bytesRead);
-		return {};
-	}
-	msgBuf[intLength] = '\0';
-
-	stringMsg = msgBuf;
+	DBG("recving data from server...");
+	msgBuf = new char[pr.dataSize + 1];
+	bytesRead = recv(conSocket.get()->getSock(), msgBuf, pr.dataSize, MSG_WAITALL);
+	messaging::ParsedResponse refindPR = messaging::ClientProtocol::parseData(
+		std::move(pr),
+		reinterpret_cast<const char*>(msgBuf)
+	);
 	delete[] msgBuf;
-
-	if (bytesRead <= 0)
-		return {};
-
-	std::cout << "msg got:\n" << stringMsg << std::endl;
-	return stringMsg;
+	return refindPR.dataBuffer;
 
 
-
-}
-
-// sendmessage request. sends a message to the server text file
-void Client::UserClient::sendMessage(u_int msgLength, const char* msg, u_int requestType, const char* userName)
-{
-	DBG("send msg request");
-
-	// if thers no space to pass it in 4 bytes
-	if (msgLength > 9999)
-	{
-		std::cerr << " length too long" << std::endl;
-		return;
-	}
-
-
-	// header + message length
-	size_t payloadLength = HEADER_SIZE + msgLength;
-
-	char headerBuf[HEADER_SIZE + 1] = { 0 };
-	char* payload = new char[payloadLength];
-
-
-	// write header (8 bytes  for sprintf_s)
-	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", INTSIZE, msgLength, INTSIZE, requestType);
-
-	// copy header to payload
-	memcpy(payload, headerBuf, HEADER_SIZE);
-
-	// copy the message after the header
-	memcpy(payload + HEADER_SIZE, msg, msgLength);
-
-
-	bool isSent = sendAll(conSocket.get()->getSock(), payload, static_cast<u_int>(payloadLength));
-	DBG("isSent: " << isSent);
-	delete[] payload;
-}
-
-
-void Client::UserClient::registerRequest(u_int msgLength, const char* msg, u_int requestType, const char* name)
-{
-	DBG("send msg request");
-
-	// if thers no space to pass it in 4 bytes
-	if (msgLength > 9999)
-	{
-		std::cerr << " length too long" << std::endl;
-		return;
-	}
-
-	constexpr size_t HEADER_SIZE = 16; // 8 bytes for header
-
-	// header + message length
-	size_t payloadLength = HEADER_SIZE + msgLength;
-
-	char headerBuf[HEADER_SIZE + 1] = { 0 };
-	char* payload = new char[payloadLength];
-
-
-	// write header (8 bytes  for sprintf_s)
-	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", INTSIZE, msgLength, INTSIZE, requestType);
-
-	// write name to header
-	memcpy(headerBuf + 8, name, 2 * INTSIZE);
-	// copy header to payload
-	memcpy(payload, headerBuf, HEADER_SIZE);
-
-	// copy the message after the header
-	memcpy(payload + HEADER_SIZE, msg, msgLength);
-
-
-	bool isSent = sendAll(conSocket.get()->getSock(), payload, static_cast<u_int>(payloadLength));
-	DBG("isSent: " << isSent);
-	delete[] payload;
-
-}
-
-
-// requests the entire content for the text file from the server
-void Client::UserClient::getChat(u_int requestType, const char* userName)
-{
-	DBG("get chat request");
-
-	// header 
-	constexpr size_t HEADER_SIZE = 2 * INTSIZE; // 8 bytes for header
-	size_t payloadLength = HEADER_SIZE;
-
-	char* payload = new char[payloadLength];
-
-	// write header (8 bytes  for sprintf_s)
-	char headerBuf[HEADER_SIZE + 1] = { 0 };
-	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", INTSIZE, 0, INTSIZE, requestType);
-
-	memcpy(payload, headerBuf, HEADER_SIZE);
-
-	// sendig payload, which is 8 bytes ( size of header, 2 INTSIZE)
-	sendAll(conSocket.get()->getSock(), payload, 2 * INTSIZE);
-	delete[] payload;
 }
 
 
 // sends to the server the payload (header + body)
-bool Client::UserClient::sendAll(SOCKET s, char* buf, u_int len)
+bool Client::UserClient::sendAll(SOCKET s, const char* buf, u_int len)
 {
 	int sent = 0;
 	while (sent < len)

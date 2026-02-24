@@ -15,7 +15,7 @@ namespace sockets::server::data
 		// client's sockaddr struct
 		struct sockaddr clientAddr;
 		// recved data buffer
-		std::shared_ptr<char[]> dataBuf;
+		std::shared_ptr<char[]> dataBuf; // CHANGE
 		// the recved data buffer's length
 		unsigned int lenData;
 

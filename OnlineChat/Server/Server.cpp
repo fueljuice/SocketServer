@@ -1,9 +1,7 @@
 #include "Server.h"
+#include "../Protocol/ProtocolConstants.h"
 
 #define dbFileDir   "C:\\Users\\zohar\\Desktop\\dbFile.txt"
-#define INTSIZE         4
-#define HEADER_SIZE     16
-#define MAXBYTES        9999
 
 #ifdef PR_DEBUG
 #define DBG(X) std::cout << X << std::endl
@@ -100,7 +98,7 @@ void sockets::server::Server::acceptConnection()
         if (newSock != INVALID_SOCKET)
         {
             DBG("accepted valid socket");
-            auto clientPtr = std::make_shared<data::ClientSocketData>(newSock, clientAddr, MAXBYTES);
+            auto clientPtr = std::make_shared<data::ClientSocketData>(newSock, clientAddr, messaging::MAX_CLIENT_BYTES);
             {
                 // locking before pushing the socket of the client into the list of clients.
                 // the list is later used to brod
@@ -130,18 +128,13 @@ void sockets::server::Server::handleConnection(std::shared_ptr<data::ClientSocke
     while(running.load())
     {
         // recving the entire header
-        std::array<std::byte, HEADER_SIZE> header{};
+        std::array<std::byte, messaging::REQUEST_HEADER_SIZE> header{};
         lengthHeaderBytes = recv(
             client->clientSocket,
             reinterpret_cast<char*>(header.data()),
             static_cast<int>(header.size()),
             MSG_WAITALL
         );
-        if (lengthHeaderBytes != HEADER_SIZE) // checking it was fully read
-        { 
-            removeDeadClient(client->clientSocket);
-            break;
-        }
 
         // parses the header, check if header is OK
         messaging::ParsedRequest pr = 
@@ -193,7 +186,6 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
 {
 
     DBG("responding to client...");
-    DBG("pr: " << oldPr.dataSize << " dataSize. reqType: "<< oldPr.requestType);
     // parsing with the previous header as parameter 
     // getting the new parsed request with data
     messaging::ParsedRequest refinedPr = 
@@ -210,7 +202,7 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
     {
 
         // sendmessage request
-    case messaging::action::SENDMESSAGE:
+    case messaging::ActionType::SEND_MESSAGE:
         {
             DBG("send message request");
             sendMessage(client, refinedPr);
@@ -218,18 +210,18 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
         }
 
         // get chat request
-    case messaging::action::GETCHAT:
+    case messaging::ActionType::GET_CHAT:
     {
             DBG("get chat request");
             getChat(client, refinedPr);
             break;
     }
 
-    case messaging::action::REGISTER:
+    case messaging::ActionType::REGISTER:
         {
         DBG("register request");
-        registerRequest(client, refinedPr);
-        break;
+            registerRequest(client, refinedPr);
+            break;
         }
 
     default:
@@ -269,10 +261,10 @@ void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> cl
 
         // if the text passing 4 bytes, it's size wont fit in the header ( 4 bytes )
         // therfore its got to be cut
-        if (allText.size() > 9999)
+        if (allText.size() > messaging::MAX_MESSAGE_LENGTH)
         {
-            DBG("text is too big.. CUTTING IT TO SIZE 9999");
-            allText.resize(9999);
+            DBG("text is too big.. CUTTING IT TO SIZE " << messaging::MAX_MESSAGE_LENGTH);
+            allText.resize(messaging::MAX_MESSAGE_LENGTH);
 
         }
 
@@ -335,7 +327,7 @@ void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData
         dbFile.flush();
     }
     // broadcasting the message
-    broadcast(pr.dataBuffer, pr.dataSize);
+    broadcast(pr.dataBuffer.c_str(), static_cast<int>(pr.dataBuffer.length()));
 
 }
 
@@ -351,7 +343,7 @@ void sockets::server::Server::registerRequest(std::shared_ptr<data::ClientSocket
     DBG("start regitering");
     
     // check for duplicate usernames
-    std::string requestedUsername(pr.dataBuffer, pr.dataSize);
+    std::string requestedUsername = pr.dataBuffer;
     for (const auto& [socket, username] : clientsNameMap)
     {
         if (username == requestedUsername)
@@ -377,9 +369,9 @@ void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
     std::vector<SOCKET> deadClients;
     {
         std::lock_guard<std::mutex> lk(clientVectorMutex);
+        // iterating over all the active clients
         for (const auto& client : clientVector)
         {
-
             if (!running.load())
                 break;
 
@@ -391,7 +383,7 @@ void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
                     msgLen
                 );
             }
-
+			// if the client is unavaiable, adding it to the dead clients vector to remove it later
             if (!isSent)
             {
                 deadClients.push_back(client.get()->clientSocket);
@@ -414,15 +406,19 @@ void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
 bool sockets::server::Server::sendAll(SOCKET s, const char* buf, int len)
 {
     int sent = 0, r, sentLength;
-    char formattedLength[INTSIZE + 1] = {0};
-
-    // sending the first INTSIZE bytes as the length of the message
-    sprintf_s(formattedLength, sizeof(formattedLength), "%0*d", INTSIZE, len); // formatting
-    sentLength = send(s, formattedLength, INTSIZE, 0);
-    if (sentLength != INTSIZE)
+    DBG("sending data...");
+    // sends a response header
+    sentLength = send(
+        s,
+        messaging::ServerProtocol::constructResponseHeader(len).c_str(),
+        messaging::REQUEST_DATA_LENGTH_SIZE,
+        0
+    );
+    DBG("sent header" << sentLength);
+    if (sentLength != messaging::REQUEST_DATA_LENGTH_SIZE)
         return false;
-
-    // sending the buffer itself
+    std::cout << buf << std::endl;
+    // sending the data
     while (sent < len)
     {
         r = send(s, buf + sent, len - sent, 0);

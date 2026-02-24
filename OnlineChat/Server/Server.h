@@ -10,7 +10,7 @@
 
 #include "./data/clientSocketData.h"
 #include "AbstractServer.h"
-#include "../Parser/ServerProtocol.h"
+#include "../Protocol/ServerProtocol.h"
 
 
 

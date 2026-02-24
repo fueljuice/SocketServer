@@ -11,25 +11,11 @@
 /*
  
 -------PROTOCOL---------:
-
-there are 2 types of requests getChat adn sendMessage.
-
-getChat: returns the entire file content. doesnt need data and the datalength should be 0
-and the request type shuld be 1
-
-sendMessage: uploads a message into the file. the data should be the message itself and datalength should be 
-the message length. and the request should be 2
-
-the data length should be the first 0 - 4 bytes.
-
-the request type should be from 4 - 8 bytes
-
-the data should be the rest of the buffer.
-
-UPDATE:
-
-bytes 8 - 16 of header are username.
-
+header: 
+	0-3: data length
+	4-7: request type
+	8-15: username
+------------------------
 
 */
 
@@ -39,6 +25,8 @@ class ServerProtocol
 {
 public:
 
+	// constructs the response header
+	static std::string constructResponseHeader(int length);
 	// returns a prasedRequest struct with the extarrcted header length
 	static ParsedRequest parseHeader(const char* rawHeader, int rawLength);
 	// returns a prasedRequest struct with the extarcted data 

@@ -1,6 +1,5 @@
 #include "ServerProtocol.h"
-#define  INTSIZE	4
-# define HEADER_SIZE	16
+#include "ProtocolConstants.h"
 #ifdef PR_DEBUG
 #define DBG(X) std::cout << X << std::endl
 #else
@@ -9,13 +8,20 @@
 
 
 
+std::string messaging::ServerProtocol::constructResponseHeader(int len)
+{
+	char formattedLength[messaging::RESPONSE_DATA_LENGTH_SIZE + 1] = { 0 };
+	sprintf_s(formattedLength, sizeof(formattedLength), "%0*d", messaging::RESPONSE_DATA_LENGTH_SIZE, len); // formatting
+	return std::string(formattedLength, messaging::RESPONSE_DATA_LENGTH_SIZE);
+}
+
 // extracts header
 messaging::ParsedRequest messaging::ServerProtocol::parseHeader(const char* rawHeader, int rawLength)
 {
 	DBG("parsing header");
 	ParsedRequest pr;
 	DBG("rawLength: " << rawLength);
-	if (rawLength != HEADER_SIZE)
+	if (rawLength != messaging::REQUEST_HEADER_SIZE)
 		return pr;
 
 	extractLength(pr, rawHeader);
@@ -30,7 +36,7 @@ messaging::ParsedRequest messaging::ServerProtocol::parseData(ParsedRequest&& pr
 {
 	DBG("parsing data");
 	// check for valid conditions to extract data
-	if (pr.requestType != INVALIDACTION && pr.dataSize > 0)
+	if (pr.requestType != ActionType::INVALID && pr.dataSize > 0)
 		extractData(pr, rawData);
 	return pr;
 }
@@ -38,25 +44,25 @@ messaging::ParsedRequest messaging::ServerProtocol::parseData(ParsedRequest&& pr
 bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr)
 {
 	// must have username
-	if (pr.userName == nullptr)
+	if (pr.userName.empty())
 		return false;
 	DBG("username OK");
 
-	// GETCHAT
-	if (pr.requestType == action::GETCHAT && pr.dataSize == 0) return true;
+	// GET_CHAT
+	if (pr.requestType == ActionType::GET_CHAT && pr.dataSize == 0) return true;
 
-	// SENDMESSAGE
-	else if (pr.requestType == action::SENDMESSAGE && pr.dataSize > 0 && pr.dataBuffer != nullptr) return true;
+	// SEND_MESSAGE
+	else if (pr.requestType == ActionType::SEND_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty()) return true;
 
 	// REGISTER
-	else if (pr.requestType == action::REGISTER && pr.dataSize > 0 && pr.dataBuffer != nullptr) return true;
+	else if (pr.requestType == ActionType::REGISTER && pr.dataSize > 0 && !pr.dataBuffer.empty()) return true;
 
 	return false;
 }
 
 bool messaging::ServerProtocol::isHeaderOK(const ParsedRequest& pr)
 {
-	return (pr.userName != nullptr && pr.dataSize > -1 && pr.requestType != action::INVALIDACTION);
+	return (!pr.userName.empty() && pr.dataSize > -1 && pr.requestType != ActionType::INVALID);
 }
 
 
@@ -65,13 +71,13 @@ void messaging::ServerProtocol::extractLength(ParsedRequest& pr, const char* raw
 {
 	char* endptr;
 	int length;
-	char charLength[INTSIZE + 1] = {0};
+	char charLength[messaging::REQUEST_DATA_LENGTH_SIZE + 1] = {0};
 	DBG("extracting length..");
 	
 	
 	
 	// reads for bytes and converts them into int
-	memcpy(charLength, rawHeader, INTSIZE);
+	memcpy(charLength, rawHeader, messaging::REQUEST_DATA_LENGTH_SIZE);
 	DBG("after mem copy: " + std::string(charLength));
 	length = strtol(charLength, &endptr, 10);
 
@@ -92,38 +98,37 @@ void messaging::ServerProtocol::extractLength(ParsedRequest& pr, const char* raw
 // extracts request type from header to
 void messaging::ServerProtocol::extractRequestType(ParsedRequest& pr, const char* rawHeader)
 {
-	constexpr unsigned int reqTypeOffset = INTSIZE;
+	constexpr unsigned int reqTypeOffset = messaging::REQUEST_TYPE_OFFSET;
 	DBG("EXTRACTING REQUEST TYPE..");
-	action reqType;
-	char reqTypeChar[INTSIZE + 1] = {0};
+	ActionType reqType;
+	char reqTypeChar[messaging::REQUEST_TYPE_SIZE + 1] = {0};
 	
 	// memcopies and atoi
-	memcpy(reqTypeChar, rawHeader + reqTypeOffset, INTSIZE);
-	reqType = static_cast<action>(atoi(reqTypeChar));
+	memcpy(reqTypeChar, rawHeader + reqTypeOffset, messaging::REQUEST_TYPE_SIZE);
+	reqType = static_cast<ActionType>(atoi(reqTypeChar));
 
 
-	if (!reqType)
+	if (static_cast<int>(reqType) == 0)
 	{
 		DBG("couldnt convert char length to int" );
-		pr.requestType = INVALIDACTION;
+		pr.requestType = ActionType::INVALID;
 	}
 	else
 	{
-		DBG("reqType: " << reqType);
+		DBG("reqType: " << static_cast<int>(reqType));
 		pr.requestType = reqType;
 	}
 
 }
 void messaging::ServerProtocol::extractUserName(ParsedRequest& pr, const char* rawHeader)
 {
-	constexpr unsigned int userNameOffset = 2*INTSIZE;
+	constexpr unsigned int userNameOffset = messaging::USERNAME_OFFSET;
 
 	DBG("extracting userName");
-	// creating data buffer
-	pr.userName = new char[2*INTSIZE + 1];
-	pr.userName[2*INTSIZE] = '\0';
-	// copying
-	memcpy(pr.userName, rawHeader + userNameOffset, 2*INTSIZE);
+	// create string from raw header data
+	pr.userName.assign(rawHeader + userNameOffset, messaging::USERNAME_SIZE);
+	DBG("extracting userName done");
+
 }
 
 
@@ -132,11 +137,6 @@ void messaging::ServerProtocol::extractData(ParsedRequest& pr, const char* rawDa
 {
 	DBG("extracting data.... datasize: " << pr.dataSize);
 
-	// creating data buffer
-	pr.dataBuffer = new char[pr.dataSize + 1];
-	pr.dataBuffer[pr.dataSize] = '\0';
-	// copying
-	memcpy(pr.dataBuffer, rawData, pr.dataSize);
-
-
+	// create string from raw data
+	pr.dataBuffer.assign(rawData, pr.dataSize);
 }
