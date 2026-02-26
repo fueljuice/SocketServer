@@ -26,7 +26,7 @@ messaging::ParsedRequest messaging::ServerProtocol::parseHeader(const char* rawH
 
 	extractLength(pr, rawHeader);
 	extractRequestType(pr, rawHeader);
-	extractUserName(pr, rawHeader);
+	extractProtocolVersion(pr, rawHeader);
 
 	return pr;
 }
@@ -41,28 +41,34 @@ messaging::ParsedRequest messaging::ServerProtocol::parseData(ParsedRequest&& pr
 	return pr;
 }
 
-bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr)
+bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr, bool isRegistered)
 {
-	// must have username
-	if (pr.userName.empty())
+	// must have valid protocol version
+	if (pr.protocolVersion != PROTOCOL_VERSION)
+	{
+		DBG("INVALID PROTOCOL VERSION: " << pr.protocolVersion);
 		return false;
-	DBG("username OK");
+	}
+	DBG("protocol version OK");
 
 	// GET_CHAT
-	if (pr.requestType == ActionType::GET_CHAT && pr.dataSize == 0) return true;
+	if (pr.requestType == ActionType::GET_CHAT && pr.dataSize == 0 && isRegistered) return true;
 
 	// SEND_MESSAGE
-	else if (pr.requestType == ActionType::SEND_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty()) return true;
+	else if (pr.requestType == ActionType::SEND_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
 
 	// REGISTER
-	else if (pr.requestType == ActionType::REGISTER && pr.dataSize > 0 && !pr.dataBuffer.empty()) return true;
+	else if (pr.requestType == ActionType::REGISTER && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
+
+	// DIRECT MESSAGE
+	else if (pr.requestType == ActionType::DIRECT_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
 
 	return false;
 }
 
 bool messaging::ServerProtocol::isHeaderOK(const ParsedRequest& pr)
 {
-	return (!pr.userName.empty() && pr.dataSize > -1 && pr.requestType != ActionType::INVALID);
+	return (pr.dataSize > -1 && pr.requestType != ActionType::INVALID && pr.protocolVersion == PROTOCOL_VERSION);
 }
 
 
@@ -120,23 +126,24 @@ void messaging::ServerProtocol::extractRequestType(ParsedRequest& pr, const char
 	}
 
 }
-void messaging::ServerProtocol::extractUserName(ParsedRequest& pr, const char* rawHeader)
+
+
+
+// extracts protocol version from header
+void messaging::ServerProtocol::extractProtocolVersion(ParsedRequest& pr, const char* rawHeader)
 {
-	constexpr unsigned int userNameOffset = messaging::USERNAME_OFFSET;
-
-	DBG("extracting userName");
-	// create string from raw header data
-	pr.userName.assign(rawHeader + userNameOffset, messaging::USERNAME_SIZE);
-	DBG("extracting userName done");
-
+	constexpr unsigned int versionOffset = messaging::PROTOCOL_VERSION_OFFSET;
+	DBG("EXTRACTING PROTOCOL VERSION..");
+	unsigned int version = static_cast<unsigned int>(rawHeader[versionOffset] - '0');
+	pr.protocolVersion = version;
+	DBG("protocol version: " << version);
 }
 
 
 // extracts data into parsedrequest struct
 void messaging::ServerProtocol::extractData(ParsedRequest& pr, const char* rawData)
 {
-	DBG("extracting data.... datasize: " << pr.dataSize);
-
 	// create string from raw data
+	DBG("extracting data.... datasize: " << pr.dataSize);
 	pr.dataBuffer.assign(rawData, pr.dataSize);
 }

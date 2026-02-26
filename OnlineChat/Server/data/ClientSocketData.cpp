@@ -10,7 +10,8 @@ sockets::server::data::ClientSocketData::ClientSocketData(SOCKET socket, sockadd
 	clientSocket(socket),
 	dataBuf(nullptr),
 	lenData(-1),
-	clientAddr(addr)
+	clientAddr(addr),
+	isRegistered(false)
 	{}
 
 

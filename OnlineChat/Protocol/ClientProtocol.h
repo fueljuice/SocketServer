@@ -17,7 +17,7 @@ class ClientProtocol
 public:
 	static ParsedResponse parseHeader(const char* rawHeader, unsigned int rawLength);
 	static ParsedResponse parseData(ParsedResponse&& pr, const char* rawData);
-	static std::string constructRequest(unsigned int msgLength, const char* msg, unsigned int requestType, const char* name);
+	static std::string constructRequest(unsigned int msgLength, const char* msg, unsigned int requestType);
 
 private:
 	// extarcts length of data	

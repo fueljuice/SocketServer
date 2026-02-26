@@ -32,20 +32,13 @@ messaging::ParsedResponse messaging::ClientProtocol::parseData(ParsedResponse&& 
 	return pr;
 }
 
-std::string messaging::ClientProtocol::constructRequest(unsigned int msgLength, const char* msg, unsigned int requestType, const char* name)
+std::string messaging::ClientProtocol::constructRequest(unsigned int msgLength, const char* msg, unsigned int requestType)
 {
 	
 	// check for msg length
 	if (msgLength > MAX_MESSAGE_LENGTH)
 	{
 		std::cerr << "Message length too long (max: " << MAX_MESSAGE_LENGTH << ")" << std::endl;
-		return {};
-	}
-	
-	// check for username length
-	if (!name || strlen(name) > USERNAME_SIZE)
-	{
-		std::cerr << "Invalid username" << std::endl;
 		return {};
 	}
 
@@ -58,10 +51,7 @@ std::string messaging::ClientProtocol::constructRequest(unsigned int msgLength, 
 	
 	// construct header
 	char headerBuf[REQUEST_HEADER_SIZE + 1] = {0};
-	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u", REQUEST_DATA_LENGTH_SIZE, msgLength, REQUEST_TYPE_SIZE, requestType);
-	
-	// copy username to header (with proper bounds checking)
-	memcpy(headerBuf + USERNAME_OFFSET, name, std::min(strlen(name), static_cast<size_t>(USERNAME_SIZE)));
+	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u%u", REQUEST_DATA_LENGTH_SIZE, msgLength, REQUEST_TYPE_SIZE, requestType, PROTOCOL_VERSION);
 	
 	// Build complete payload
 	payload.append(headerBuf, REQUEST_HEADER_SIZE);

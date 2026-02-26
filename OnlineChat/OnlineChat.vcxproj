@@ -139,6 +139,7 @@
     <ClCompile Include="Protocol\ParsedRequest.cpp" />
     <ClCompile Include="Protocol\ServerProtocol.cpp" />
     <ClCompile Include="Server\AbstractServer.cpp" />
+    <ClCompile Include="Server\ChatRequestHandler.cpp" />
     <ClCompile Include="Server\Server.cpp" />
     <ClCompile Include="Sockets\ConnectingSocket.cpp" />
     <ClCompile Include="Sockets\ListeningSocket.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="Protocol\ServerProtocol.h" />
     <ClInclude Include="Server\AbstractServer.h" />
     <ClInclude Include="Server\data\ClientSocketData.h" />
+    <ClInclude Include="Server\ChatRequestHandler.h" />
     <ClInclude Include="Server\Server.h" />
     <ClInclude Include="Sockets\ConnectingSocket.h" />
     <ClInclude Include="Sockets\ListeningSocket.h" />

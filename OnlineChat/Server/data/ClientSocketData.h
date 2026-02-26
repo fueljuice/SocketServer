@@ -18,7 +18,7 @@ struct ClientSocketData
 	std::shared_ptr<char[]> dataBuf; // CHANGE
 	// the recved data buffer's length
 	unsigned int lenData;
-
+	bool isRegistered;
 	void initData(unsigned int length);
 
 

@@ -1,4 +1,5 @@
 #include "Server.h"
+#include "ChatRequestHandler.h"
 #include "../Protocol/ProtocolConstants.h"
 
 #define dbFileDir   "C:\\Users\\zohar\\Desktop\\dbFile.txt"
@@ -191,7 +192,7 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
     // getting the new parsed request with data
     messaging::ParsedRequest refinedPr = 
         messaging::ServerProtocol::parseData(std::move(oldPr), client->dataBuf.get());
-    if (!messaging::ServerProtocol::isStatusOK(refinedPr))
+    if (!messaging::ServerProtocol::isStatusOK(refinedPr, client->isRegistered))
     {
         DBG("STATUS CODE BAD 404");
         return;
@@ -202,165 +203,87 @@ void sockets::server::Server::respondToClient(std::shared_ptr<data::ClientSocket
     switch (refinedPr.requestType)
     {
 
-        // sendmessage request
-    case messaging::ActionType::SEND_MESSAGE:
-        {
-            DBG("send message request");
-            sendMessage(client, refinedPr);
-            break;
-        }
-
-        // get chat request
+    // get chat request
     case messaging::ActionType::GET_CHAT:
     {
-            DBG("get chat request");
-            getChat(client, refinedPr);
+        DBG("send message request");
+        ChatRequestHandler::handleGetChat(
+            client->clientSocket,
+            refinedPr,
+            dbFile,
+            fileMutex,
+            [this](SOCKET s, const char* buf, int len)
+            {
+                return this->sendAll(s, buf, len);
+            });           
             break;
     }
 
-    case messaging::ActionType::REGISTER:
-        {
-        DBG("register request");
-            registerRequest(client, refinedPr);
+    // send message request
+    case messaging::ActionType::SEND_MESSAGE:
+    {
+        DBG("get chat request");
+        ChatRequestHandler::handleSendMessage(
+            client->clientSocket,
+            refinedPr,
+            dbFile,
+            fileMutex,
+            nameMapMutex,
+            clientsNameMap,
+            [this](const char* msgBuf, int msgLen)
+            {
+                this->broadcast(msgBuf, msgLen);
+            },
+            [this](SOCKET s, const char* buf, int len)
+            {
+                return this->sendAll(s, buf, len);
+            });
             break;
-        }
+    }
+	// register request
+    case messaging::ActionType::REGISTER:
+    {
+        bool didRegister;
+        DBG("register request");
+        didRegister = ChatRequestHandler::handleRegister(
+            client->clientSocket,
+            refinedPr,
+            nameMapMutex,
+            clientsNameMap,
+            [this](SOCKET s, const char* buf, int len)
+            {
+                return this->sendAll(s, buf, len);
+            });     
+        // saves user as registered, if sucsessful
+        client->isRegistered = didRegister;
+        break;
+    }
+    // direct message request
+    case messaging::ActionType::DIRECT_MESSAGE:
+    {
+        DBG("direct message request");
+        ChatRequestHandler::handleDirectMessage(
+            client->clientSocket,
+            refinedPr,
+            nameMapMutex,
+            clientsNameMap,
+            [this](SOCKET s, const char* buf, int len)
+            {
+                return this->sendAll(s, buf, len);
+            }
+        );
+        break;
+    }
 
     default:
-        {
+    {
         DBG("BAD REQUEST TYPE");
         break;
-        }
+    }
   
     }
 }
 
-// sends the entire data base to the client, according to the protocol
-void sockets::server::Server::getChat(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
-{
-    DBG("getChat request called");
-    bool isSent;
-    std::string allText;
-
-    {
-        // locking the file with mutex to prevent a thread updating the file while reading
-
-        std::lock_guard<std::mutex> lk(fileMutex);
-        if (!dbFile.is_open())
-        {
-            DBG("cant open file");
-            stop();
-        }
-
-        dbFile.clear();
-        dbFile.seekg(0, std::ios::beg);
-        // iterating over all the file to get all the text from it
-        allText = std::string
-        {
-            std::istreambuf_iterator<char>(dbFile),
-            std::istreambuf_iterator<char>()
-        };
-
-        // if the text passing 4 bytes, it's size wont fit in the header ( 4 bytes )
-        // therfore its got to be cut
-        if (allText.size() > messaging::MAX_MESSAGE_LENGTH)
-        {
-            DBG("text is too big.. CUTTING IT TO SIZE " << messaging::MAX_MESSAGE_LENGTH);
-            allText.resize(messaging::MAX_MESSAGE_LENGTH);
-
-        }
-
-        if (!dbFile.good() && !dbFile.eof())
-        {
-            DBG("can't read file");
-            return;
-        }
-    }
-
-    {
-        DBG("allText:" << allText << "\nsize of allText: " << allText.size());
-        // sending the file text to the client
-        std::lock_guard<std::mutex> lk(sendMutex);
-        isSent = sendAll(
-            client->clientSocket,
-            allText.c_str(),
-            static_cast<int>(allText.size())
-        );
-    }
-
-    if (!isSent)
-    {
-        DBG("client socket unavaiable. cant send client");
-        // Move the lock_guard outside the erase call to ensure the lock is held during erase
-        {
-            removeDeadClient(client->clientSocket);
-        }
-    }
-
-}
-
-// reads a message from the client to the data base file. and brodcasts the update to all active users
-void sockets::server::Server::sendMessage(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
-{
-    // checking if the client is registered
-    if(clientsNameMap[client->clientSocket].empty())
-    {
-		const char* msg = "Please register before sending messages.";
-        sendAll(client->clientSocket, "Please register first", 22);(
-            client->clientSocket,
-            msg,
-            static_cast<int>(strlen(msg))
-			);
-        return;
-	}
-
-    // writing the message to the file
-    DBG("sendMessage request called");
-    {
-        std::lock_guard<std::mutex> lk(fileMutex);
-        if (!dbFile.is_open())
-        {
-            DBG("cant open file");
-            stop();
-        }
-        dbFile.clear();
-        dbFile.seekp(0, std::ios::end);
-        dbFile << clientsNameMap[client->clientSocket] << ": " << pr.dataBuffer << std::endl;
-        dbFile.flush();
-    }
-    // broadcasting the message
-    broadcast(pr.dataBuffer.c_str(), static_cast<int>(pr.dataBuffer.length()));
-
-}
-
-void sockets::server::Server::registerRequest(std::shared_ptr<data::ClientSocketData> client, messaging::ParsedRequest& pr)
-{
-    // checking if the client is already registered
-    if(!clientsNameMap[client->clientSocket].empty())
-    {
-        const char* msg = "You are already registered.";
-        sendAll(client->clientSocket, msg, static_cast<int>(strlen(msg)));
-        return;
-	}
-    DBG("start regitering");
-    
-    // check for duplicate usernames
-    std::string requestedUsername = pr.dataBuffer;
-    for (const auto& [socket, username] : clientsNameMap)
-    {
-        if (username == requestedUsername)
-        {
-            const char* msg = "Username already taken. Please choose a different username.";
-            sendAll(client->clientSocket, msg, static_cast<int>(strlen(msg)));
-            return;
-        }
-    }
-
-    clientsNameMap[client->clientSocket] = requestedUsername;
-
-    // send success message
-    const char* successMsg = "Registration successful.";
-    sendAll(client->clientSocket, successMsg, static_cast<int>(strlen(successMsg)));
-}
 
 // broadcasts message to all active clients 
 void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
@@ -406,6 +329,7 @@ void sockets::server::Server::broadcast(const char* msgBuf, int msgLen)
 // it also sends the first INTSIZE bytes as the length
 bool sockets::server::Server::sendAll(SOCKET s, const char* buf, int len)
 {
+	std::lock_guard<std::mutex> lk(sendMutex);
     int sent = 0, r, sentLength;
     DBG("sending data...");
     // sends a response header

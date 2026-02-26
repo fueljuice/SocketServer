@@ -16,7 +16,7 @@ public:
 	AbstractClient(const AbstractClient&) = delete;
 	AbstractClient& operator=(const AbstractClient&) = delete;
 
-	virtual void sendRequest(const char* msg, u_int requestType, const char* name) = 0;
+	virtual void sendRequest(const char* msg, u_int requestType) = 0;
 
 	virtual std::string recieveResponse() = 0;
 

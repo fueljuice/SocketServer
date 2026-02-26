@@ -10,7 +10,8 @@
 
 #define PORT 5555
 
-class ClientManager {
+class ClientManager
+{
 public:
     static std::unique_ptr<Client::UserClient> createClient()
     {
@@ -48,12 +49,13 @@ public:
         try
         {
             // simple menu loop for sending requests
-            client->sendRequest("", 1, "userName");
+            client->sendRequest("", static_cast<u_int>(messaging::ActionType::GET_CHAT));
             std::cout << "response:" << client->recieveResponse() << std::endl;
             std::cout << std::endl;
             std::cout << "choose request type:" << std::endl;
             std::cout << "  (/msg) send message" << std::endl;
             std::cout << "  (/reg) register " << std::endl;
+            std::cout << "  (/dm) register " << std::endl;
             std::cout << "  q) quit" << std::endl;
             while (true)
             {
@@ -82,7 +84,7 @@ public:
                         if (msg.empty())
                             std::cout << "username is empty, registration cancelled" << std::endl;
                         // std::cout << "registering user " << msg << "..." << std::endl;
-                        client->sendRequest(msg.c_str(), 2, "USERNAME");
+                        client->sendRequest(msg.c_str(), static_cast<u_int>(messaging::ActionType::SEND_MESSAGE));
                     }
                     else if (choice == "/reg")
                     {
@@ -92,7 +94,17 @@ public:
                         if (username.empty())
                             std::cout << "username is empty, registration cancelled" << std::endl;
                         std::cout << "registering user " << username << "..." << std::endl;
-                        client->sendRequest(username.c_str(), 3, "USERNAME");
+                        client->sendRequest(username.c_str(), static_cast<u_int>(messaging::ActionType::REGISTER));
+                    }
+                    else if (choice == "/dm")
+                    {
+                        std::cout << "enter username to send a DM: ";
+                        std::string username;
+                        std::cin >> username;
+                        if (username.empty())
+                            std::cout << "username is empty, registration cancelled" << std::endl;
+                        std::cout << "sending msg to user: " << username << "..." << std::endl;
+                        client->sendRequest("MSGTEST", static_cast<u_int>(messaging::ActionType::DIRECT_MESSAGE));
                     }
                     else
                         std::cout << "invalid option, choose 0, 1 or 2" << std::endl;
@@ -123,7 +135,8 @@ public:
                 }
             }
         }
-        catch (const std::exception& e) {
+        catch (const std::exception& e)
+        {
             std::cerr << "Unexpected error: " << e.what() << std::endl;
             return 1;
         }

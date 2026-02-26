@@ -1,7 +1,6 @@
 #include "UserClient.h"
 #include "../Protocol/ProtocolConstants.h"
 #include "ClientExceptions.h"
-#include <chrono>
 #include <ctime>
 
 constexpr const char* NO_RESPONSE = "NO_RESPONSE";
@@ -25,16 +24,16 @@ Client::UserClient::~UserClient()
 
 
 // determines which request user wanted to use
-void Client::UserClient::sendRequest(const char* msg, u_int requestType, const char* userName)
+void Client::UserClient::sendRequest(const char* msg, u_int requestType)
 {
 	DBG("sending");
-	sendRequestInternal(static_cast<u_int>(strlen(msg)), msg, requestType, userName);
+	sendRequestInternal(static_cast<u_int>(strlen(msg)), msg, requestType);
 }
 
-void Client::UserClient::sendRequestInternal(u_int msgLength, const char* msg, u_int requestType, const char* userName)
+void Client::UserClient::sendRequestInternal(u_int msgLength, const char* msg, u_int requestType)
 {
 	// construct request
-	std::string payload = messaging::ClientProtocol::constructRequest(msgLength, msg, requestType, userName);
+	std::string payload = messaging::ClientProtocol::constructRequest(msgLength, msg, requestType);
 	// send it
 	bool isSent = sendAll(conSocket.get()->getSock(), payload.c_str(), payload.size());
 	DBG("is sent?: " << isSent);
