@@ -1,17 +1,9 @@
 #include "ClientSocketData.h"
 
-void sockets::server::data::ClientSocketData::initData(unsigned int length)
-{
-	dataBuf = std::make_shared<char[]>(length);
-}
-
 sockets::server::data::ClientSocketData::ClientSocketData(SOCKET socket, sockaddr addr)
 	:
 	clientSocket(socket),
-	dataBuf(nullptr),
-	lenData(-1),
-	clientAddr(addr),
-	isRegistered(false)
+	clientAddr(addr)
 	{}
 
 

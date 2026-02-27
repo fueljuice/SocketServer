@@ -26,17 +26,16 @@ namespace Client
         ~UserClient();
 
         // sends a packet to the server
-        void sendRequest(const char* msg, u_int requestType) override;
+        void sendRequest(std::string msg, std::string recver, messaging::ActionType requestType) override;
         // recieves a packet from the server
         std::string recieveResponse() override;
 
-        // passive listening methods
+        // passive listening  methods
         void startPassiveListener();
         void stopPassiveListener();
 
     private:
         // uses SENDMESSAGE request type
-        void sendRequestInternal(u_int msgLength, const char* msg, u_int requestType);
         bool sendAll(SOCKET s, const char* buf, u_int len);
 
         // passive listening members

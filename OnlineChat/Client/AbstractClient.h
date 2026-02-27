@@ -1,9 +1,8 @@
 #pragma once
-
-
 #include <memory>
-
+#include "../Protocol/ProtocolConstants.h"
 #include "../Sockets/ConnectingSocket.h"
+
 namespace Client
 {
 class AbstractClient
@@ -16,8 +15,7 @@ public:
 	AbstractClient(const AbstractClient&) = delete;
 	AbstractClient& operator=(const AbstractClient&) = delete;
 
-	virtual void sendRequest(const char* msg, u_int requestType) = 0;
-
+	virtual void sendRequest(std::string msg, std::string recver, messaging::ActionType requestType) = 0;
 	virtual std::string recieveResponse() = 0;
 
 protected:

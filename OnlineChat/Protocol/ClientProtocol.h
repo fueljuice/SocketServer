@@ -11,17 +11,19 @@
 namespace messaging
 {
 
-class ClientProtocol
-{
+	class ClientProtocol
+	{
 
-public:
-	static ParsedResponse parseHeader(const char* rawHeader, unsigned int rawLength);
-	static ParsedResponse parseData(ParsedResponse&& pr, const char* rawData);
-	static std::string constructRequest(unsigned int msgLength, const char* msg, unsigned int requestType);
+	public:
+		static ParsedResponse parseHeader(std::string rawHeader, unsigned int rawLength);
+		static ParsedResponse parseData(ParsedResponse&& pr, std::string rawData);
+		static std::string constructRequest(unsigned int msgLength, std::string msg, std::string recver, ActionType requestType);
 
-private:
-	// extarcts length of data	
-	static void extractLength(ParsedResponse& pr, const char* rawHeader, unsigned int rawLength);
-};
+	private:
+		static std::string constructHeader(unsigned int msgLength, ActionType requestType);
+		static std::string constructData(unsigned int msgLength, std::string msg, std::string recver, ActionType requestType);
+		// extarcts length of data	
+		static void extractLength(ParsedResponse& pr, std::string rawHeader, unsigned int rawLength);
+	};
 
 }

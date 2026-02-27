@@ -15,18 +15,29 @@ std::string messaging::ServerProtocol::constructResponseHeader(int len)
 	return std::string(formattedLength, messaging::RESPONSE_DATA_LENGTH_SIZE);
 }
 
+std::string messaging::ServerProtocol::constructResponse(std::string payload)
+{
+	return constructResponseHeader(payload.size()) + payload;
+}
+
 // extracts header
-messaging::ParsedRequest messaging::ServerProtocol::parseHeader(const char* rawHeader, int rawLength)
+std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseHeader(const char* rawHeader, int rawLength)
 {
 	DBG("parsing header");
 	ParsedRequest pr;
 	DBG("rawLength: " << rawLength);
-	if (rawLength != messaging::REQUEST_HEADER_SIZE)
-		return pr;
 
+	// header must be right length
+	if (rawLength != messaging::REQUEST_HEADER_SIZE)
+		return std::nullopt;
+	// extraction
 	extractLength(pr, rawHeader);
 	extractRequestType(pr, rawHeader);
 	extractProtocolVersion(pr, rawHeader);
+
+	// must be ok
+	if(!isHeaderOK(pr))
+		return std::nullopt;
 
 	return pr;
 }
@@ -58,7 +69,7 @@ bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr, bool isRegis
 	else if (pr.requestType == ActionType::SEND_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
 
 	// REGISTER
-	else if (pr.requestType == ActionType::REGISTER && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
+	else if (pr.requestType == ActionType::REGISTER && pr.dataSize > 0 && !pr.dataBuffer.empty() && !isRegistered) return true;
 
 	// DIRECT MESSAGE
 	else if (pr.requestType == ActionType::DIRECT_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
@@ -69,6 +80,19 @@ bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr, bool isRegis
 bool messaging::ServerProtocol::isHeaderOK(const ParsedRequest& pr)
 {
 	return (pr.dataSize > -1 && pr.requestType != ActionType::INVALID && pr.protocolVersion == PROTOCOL_VERSION);
+}
+
+std::pair<std::string, std::string> messaging::ServerProtocol::parseDirectMessage(std::string_view dmData)
+{
+
+	std::size_t seperatorPos = dmData.find(messaging::REQUEST_DATA_SEPERATOR);
+	if (seperatorPos == std::string::npos)
+	{
+		// enforce seperations
+		return { "", "" };
+	}
+	return { std::string(dmData.substr(0, seperatorPos)), std::string(dmData.substr(seperatorPos + 1)) };
+
 }
 
 
@@ -112,7 +136,6 @@ void messaging::ServerProtocol::extractRequestType(ParsedRequest& pr, const char
 	// memcopies and atoi
 	memcpy(reqTypeChar, rawHeader + reqTypeOffset, messaging::REQUEST_TYPE_SIZE);
 	reqType = static_cast<ActionType>(atoi(reqTypeChar));
-
 
 	if (static_cast<int>(reqType) == 0)
 	{

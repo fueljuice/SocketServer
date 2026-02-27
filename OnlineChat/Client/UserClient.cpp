@@ -24,20 +24,16 @@ Client::UserClient::~UserClient()
 
 
 // determines which request user wanted to use
-void Client::UserClient::sendRequest(const char* msg, u_int requestType)
+void Client::UserClient::sendRequest(std::string msg, std::string recver, messaging::ActionType requestType)
 {
-	DBG("sending");
-	sendRequestInternal(static_cast<u_int>(strlen(msg)), msg, requestType);
-}
-
-void Client::UserClient::sendRequestInternal(u_int msgLength, const char* msg, u_int requestType)
-{
+	const unsigned int msgLength = static_cast<unsigned int>(msg.size());
 	// construct request
-	std::string payload = messaging::ClientProtocol::constructRequest(msgLength, msg, requestType);
+	std::string payload = messaging::ClientProtocol::constructRequest(msgLength, msg, recver, requestType);
 	// send it
 	bool isSent = sendAll(conSocket.get()->getSock(), payload.c_str(), payload.size());
 	DBG("is sent?: " << isSent);
 }
+
 
 // recving the answer from the server
 std::string Client::UserClient::recieveResponse()

@@ -130,9 +130,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Client\AbstractClient.cpp" />
+    <ClCompile Include="Server\DataBaseManager.cpp" />
     <ClCompile Include="mainClient.cpp" />
     <ClCompile Include="Protocol\ParsedResponse.cpp" />
     <ClCompile Include="Protocol\ClientProtocol.cpp" />
+    <ClCompile Include="Server\NetworkIO.cpp" />
     <ClCompile Include="Server\data\ClientSocketData.cpp" />
     <ClCompile Include="Client\UserClient.cpp" />
     <ClCompile Include="main.cpp" />
@@ -141,26 +143,33 @@
     <ClCompile Include="Server\AbstractServer.cpp" />
     <ClCompile Include="Server\ChatRequestHandler.cpp" />
     <ClCompile Include="Server\Server.cpp" />
+    <ClCompile Include="Server\SessionManager.cpp" />
     <ClCompile Include="Sockets\ConnectingSocket.cpp" />
     <ClCompile Include="Sockets\ListeningSocket.cpp" />
     <ClCompile Include="Sockets\SimpleSocket.cpp" />
+    <ClCompile Include="Server\UserRegistry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\AbstractClient.h" />
     <ClInclude Include="Client\ClientExceptions.h" />
     <ClInclude Include="Client\UserClient.h" />
+    <ClInclude Include="Server\ServerException.h" />
+    <ClInclude Include="Server\DataBaseManager.h" />
     <ClInclude Include="Protocol\ParsedResponse.h" />
     <ClInclude Include="Protocol\ClientProtocol.h" />
     <ClInclude Include="Protocol\ParsedRequest.h" />
     <ClInclude Include="Protocol\ProtocolConstants.h" />
     <ClInclude Include="Protocol\ServerProtocol.h" />
+    <ClInclude Include="Server\NetworkIO.h" />
     <ClInclude Include="Server\AbstractServer.h" />
     <ClInclude Include="Server\data\ClientSocketData.h" />
     <ClInclude Include="Server\ChatRequestHandler.h" />
     <ClInclude Include="Server\Server.h" />
+    <ClInclude Include="Server\SessionManager.h" />
     <ClInclude Include="Sockets\ConnectingSocket.h" />
     <ClInclude Include="Sockets\ListeningSocket.h" />
     <ClInclude Include="Sockets\SimpleSocket.h" />
+    <ClInclude Include="Server\UserRegistry.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

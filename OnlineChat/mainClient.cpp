@@ -49,7 +49,7 @@ public:
         try
         {
             // simple menu loop for sending requests
-            client->sendRequest("", static_cast<u_int>(messaging::ActionType::GET_CHAT));
+            client->sendRequest("", "", messaging::ActionType::GET_CHAT);
             std::cout << "response:" << client->recieveResponse() << std::endl;
             std::cout << std::endl;
             std::cout << "choose request type:" << std::endl;
@@ -84,7 +84,7 @@ public:
                         if (msg.empty())
                             std::cout << "username is empty, registration cancelled" << std::endl;
                         // std::cout << "registering user " << msg << "..." << std::endl;
-                        client->sendRequest(msg.c_str(), static_cast<u_int>(messaging::ActionType::SEND_MESSAGE));
+                        client->sendRequest(msg.c_str(), "", messaging::ActionType::SEND_MESSAGE);
                     }
                     else if (choice == "/reg")
                     {
@@ -94,17 +94,21 @@ public:
                         if (username.empty())
                             std::cout << "username is empty, registration cancelled" << std::endl;
                         std::cout << "registering user " << username << "..." << std::endl;
-                        client->sendRequest(username.c_str(), static_cast<u_int>(messaging::ActionType::REGISTER));
+                        client->sendRequest(username.c_str(), "", messaging::ActionType::REGISTER);
                     }
                     else if (choice == "/dm")
                     {
                         std::cout << "enter username to send a DM: ";
                         std::string username;
+                        std::string recver;
                         std::cin >> username;
-                        if (username.empty())
-                            std::cout << "username is empty, registration cancelled" << std::endl;
+                        std::cin >> recver;
+                        if (username.empty() || recver.empty())
+                        {
+                            std::cout << "username or recver is empty, registration cancelled" << std::endl;
+                        }
                         std::cout << "sending msg to user: " << username << "..." << std::endl;
-                        client->sendRequest("MSGTEST", static_cast<u_int>(messaging::ActionType::DIRECT_MESSAGE));
+                        client->sendRequest("MSGTEST", recver.c_str(), messaging::ActionType::DIRECT_MESSAGE);
                     }
                     else
                         std::cout << "invalid option, choose 0, 1 or 2" << std::endl;
