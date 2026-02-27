@@ -8,7 +8,7 @@
 #define DBG(X)
 #endif // PR_DEBUG
 
-messaging::ParsedResponse messaging::ClientProtocol::parseHeader(std::string rawHeader, unsigned int rawLength)
+messaging::ParsedResponse messaging::ClientProtocol::parseHeader(std::string_view rawHeader, size_t rawLength)
 {
 	ParsedResponse pr;
 	// header must be the correct length
@@ -18,7 +18,7 @@ messaging::ParsedResponse messaging::ClientProtocol::parseHeader(std::string raw
 		throw Client::InvalidHeaderException("header size mismatch: expected " + std::to_string(RESPONSE_HEADER_SIZE)
 			+ "bytes and only got: " + std::to_string(rawLength));
 	}
-	extractLength(pr, rawHeader, rawLength);
+	extractLength(pr, rawHeader);
 	return pr;
 }
 
@@ -33,22 +33,19 @@ messaging::ParsedResponse messaging::ClientProtocol::parseData(ParsedResponse&& 
 	return pr;
 }
 
-std::string messaging::ClientProtocol::constructRequest(unsigned int msgLength, std::string msg, std::string recver, ActionType requestType)
+std::string messaging::ClientProtocol::constructRequest(
+	std::string_view msg,
+	std::string_view recver,
+	ActionType requestType)
 {
-
 	// calculate total payload size
-	const int payloadLength = REQUEST_HEADER_SIZE + msgLength;
-	// create payload
-	std::string payload;
-	payload.reserve(payloadLength);
-
-	std::string header = constructHeader(msgLength, requestType);
-	std::string data = constructData(msgLength, msg, recver, requestType);
-
+	const size_t payloadLength = REQUEST_HEADER_SIZE + msg.size() + recver.size();
+	std::string header = constructHeader(msg.size() + recver.size(), requestType);
+	std::string data = constructData(msg, recver);
 	return header + data;
 }
 
-std::string messaging::ClientProtocol::constructHeader(unsigned int msgLength, ActionType requestType)
+std::string messaging::ClientProtocol::constructHeader(size_t msgLength, ActionType requestType)
 {
 	// check for msg length
 	if (msgLength > MAX_MESSAGE_LENGTH)
@@ -59,31 +56,40 @@ std::string messaging::ClientProtocol::constructHeader(unsigned int msgLength, A
 
 	// construct header
 	char headerBuf[REQUEST_HEADER_SIZE + 1] = { 0 };
-	sprintf_s(headerBuf, sizeof(headerBuf), "%0*u%0*u%u", REQUEST_DATA_LENGTH_SIZE, msgLength, REQUEST_TYPE_SIZE, requestType, PROTOCOL_VERSION);
-	std::cout << "constructed header: " << headerBuf << std::endl;
+	sprintf_s(
+		headerBuf,
+		static_cast<int>(sizeof(headerBuf)), 
+		"%0*u%0*u%u",
+		static_cast<int>(REQUEST_DATA_LENGTH_SIZE),
+		static_cast<int>(msgLength),
+		static_cast<int>(REQUEST_TYPE_SIZE),
+		requestType,
+		static_cast<int>(PROTOCOL_VERSION));
+
+	DBG("constructed header: " << headerBuf);
 	return std::string(headerBuf, REQUEST_HEADER_SIZE);
 }
 
-std::string messaging::ClientProtocol::constructData(unsigned int msgLength, std::string msg, std::string recver, ActionType requestType)
+std::string messaging::ClientProtocol::constructData(std::string_view msg, std::string_view recver)
 {
-	std::string data;
-	// sepreate data and username
-	if (requestType == messaging::ActionType::DIRECT_MESSAGE)
-	{
-		// must provide a recver for direct messages
-		if (recver.empty() || recver.size() == 0)
-			throw Client::DataCorruptionException("Receiver username cannot be empty for direct messages");
-		return std::string(recver) + REQUEST_DATA_SEPERATOR + std::string(msg, msgLength);
-	}
-	return std::string(msg, msgLength);
+	if (recver.empty())
+		return std::string(recver) + REQUEST_DATA_SEPERATOR + std::string(msg);
+	return std::string(msg);
 }
 
-void messaging::ClientProtocol::extractLength(ParsedResponse& pr, std::string rawHeader, unsigned int rawLength)
+void messaging::ClientProtocol::extractLength(ParsedResponse& pr, std::string_view rawHeader)
 {
 	int intLength;
 	char* endptr;
-	const char* cRawHeader = rawHeader.c_str();
+
+	// make a buffer the size of the length field in the header
+	char cRawHeader[REQUEST_DATA_LENGTH_SIZE + 1] = { 0 };
+	memcpy(cRawHeader, rawHeader.data(), REQUEST_DATA_LENGTH_SIZE);
+	DBG("raw header length field: " << cRawHeader);
+
+	// convert the length field to an integer
 	intLength = strtol(cRawHeader, &endptr, 10);
+	DBG("strtol result: " << intLength);
 
 	// if the length header is invalid
 	if (cRawHeader == endptr)

@@ -12,7 +12,7 @@ class ListeningSocket : public SimpleSocket
 public:
 	ListeningSocket(int domain, int service, int protocol, int port, u_long network_interaface, int backlog);
 	// starts a listen
-	void startLisetning();
+	bool startLisetning();
 	// stops te listen
 	void stopLisetning();
 	// accepts a connection
@@ -23,9 +23,10 @@ public:
 private:
 	// implements the abstract function
 	void connectToNetwork(SOCKET sock, struct sockaddr_in address) override;
-
+	// binds sock to a port
 	SOCKET bindSocket(SOCKET sock, struct sockaddr_in address);
-
+	// checks if already listening
+	bool isAlreadyListening() const;
 	int backlog;
 	int listening;
 };

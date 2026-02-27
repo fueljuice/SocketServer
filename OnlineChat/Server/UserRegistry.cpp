@@ -53,7 +53,6 @@ SOCKET sockets::server::UserRegistry::getSocket(std::string_view targetUserName)
     std::lock_guard<std::mutex> lk(nameMapMutex);
     for (const auto& [curSocket, curUserName] : clientUserNameMap)
     {
-        // 
         if (std::string_view(curUserName) == targetUserName)
         {
             return curSocket;

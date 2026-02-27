@@ -34,7 +34,7 @@ void sockets::SimpleSocket::testConnection(const SOCKET& sock) const
 	if (sock < 0)
 	{
 		DBG(sock);
-		perror("failed to zohar connect");
+		perror("failed to connect");
 		exit(EXIT_FAILURE);
 
 	}

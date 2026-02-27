@@ -19,7 +19,7 @@ public:
 
 	static std::string constructResponse(std::string payload);
 
-	static std::optional<ParsedRequest> parseHeader(const char* rawHeader, int rawLength);
+	static std::optional<ParsedRequest> parseHeader(const char* rawHeader, size_t rawLength);
 	
 	static ParsedRequest parseData(ParsedRequest&& pr, char* rawData);
 	
@@ -39,7 +39,7 @@ private:
 
 	static bool isHeaderOK(const ParsedRequest& pr);
 
-	static std::string constructResponseHeader(int length);
+	static std::string constructResponseHeader(size_t length);
 
 
 

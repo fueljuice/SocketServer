@@ -8,10 +8,11 @@
 
 
 
-std::string messaging::ServerProtocol::constructResponseHeader(int len)
+std::string messaging::ServerProtocol::constructResponseHeader(size_t len)
 {
 	char formattedLength[messaging::RESPONSE_DATA_LENGTH_SIZE + 1] = { 0 };
 	sprintf_s(formattedLength, sizeof(formattedLength), "%0*d", messaging::RESPONSE_DATA_LENGTH_SIZE, len); // formatting
+	DBG("formatted length: " << formattedLength);
 	return std::string(formattedLength, messaging::RESPONSE_DATA_LENGTH_SIZE);
 }
 
@@ -21,7 +22,7 @@ std::string messaging::ServerProtocol::constructResponse(std::string payload)
 }
 
 // extracts header
-std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseHeader(const char* rawHeader, int rawLength)
+std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseHeader(const char* rawHeader, size_t rawLength)
 {
 	DBG("parsing header");
 	ParsedRequest pr;
@@ -63,7 +64,7 @@ bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr, bool isRegis
 	DBG("protocol version OK");
 
 	// GET_CHAT
-	if (pr.requestType == ActionType::GET_CHAT && pr.dataSize == 0 && isRegistered) return true;
+	if (pr.requestType == ActionType::GET_CHAT && pr.dataSize == 0) return true;// && isRegistered) return true; RETURN. ONLY FOR TESTING
 
 	// SEND_MESSAGE
 	else if (pr.requestType == ActionType::SEND_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
@@ -84,7 +85,7 @@ bool messaging::ServerProtocol::isHeaderOK(const ParsedRequest& pr)
 
 std::pair<std::string, std::string> messaging::ServerProtocol::parseDirectMessage(std::string_view dmData)
 {
-
+	DBG("parsing direct message data: " << dmData);
 	std::size_t seperatorPos = dmData.find(messaging::REQUEST_DATA_SEPERATOR);
 	if (seperatorPos == std::string::npos)
 	{

@@ -1,7 +1,6 @@
 #include "UserClient.h"
 #include "../Protocol/ProtocolConstants.h"
 #include "ClientExceptions.h"
-#include <ctime>
 
 constexpr const char* NO_RESPONSE = "NO_RESPONSE";
 #ifdef PR_DEBUG
@@ -26,10 +25,12 @@ Client::UserClient::~UserClient()
 // determines which request user wanted to use
 void Client::UserClient::sendRequest(std::string msg, std::string recver, messaging::ActionType requestType)
 {
-	const unsigned int msgLength = static_cast<unsigned int>(msg.size());
 	// construct request
-	std::string payload = messaging::ClientProtocol::constructRequest(msgLength, msg, recver, requestType);
+	const size_t msgLength = msg.size() + recver.size();
+	std::string payload = messaging::ClientProtocol::constructRequest(msg, recver, requestType);
+
 	// send it
+	DBG("data to send: " << payload);
 	bool isSent = sendAll(conSocket.get()->getSock(), payload.c_str(), payload.size());
 	DBG("is sent?: " << isSent);
 }
@@ -41,7 +42,7 @@ std::string Client::UserClient::recieveResponse()
 	try
 	{
 		int bytesRead;
-		char* endptr, * msgBuf = { 0 };
+		char * msgBuf = { 0 };
 		std::array<std::byte, messaging::RESPONSE_HEADER_SIZE> header{};
 		std::string stringMsg;
 
@@ -113,12 +114,12 @@ std::string Client::UserClient::recieveResponse()
 
 
 // sends to the server the payload (header + body)
-bool Client::UserClient::sendAll(SOCKET s, const char* buf, u_int len)
+bool Client::UserClient::sendAll(SOCKET s, const char* buf, size_t len)
 {
-	int sent = 0;
+	size_t sent = 0;
 	while (sent < len)
 	{
-		int r = send(s, buf + sent, len - sent, 0);
+		size_t r = send(s, buf + sent, len - sent, 0);
 		if (r <= 0) {
 			throw Client::ConnectionException("Failed to send data to server");
 		}
@@ -213,6 +214,7 @@ bool Client::UserClient::checkForMessages()
 		{
 			// other error, log but continue
 			DBG("error receiving message: " << e.what());
+			shouldListen.store(false);
 			return false;
 		}
 	}

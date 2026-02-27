@@ -1,5 +1,5 @@
 #include "Server.h"
-#include "ChatRequestHandler.h"
+#include "RequestHandler.h"
 #include "../Protocol/ProtocolConstants.h"
 
 #ifdef PR_DEBUG
@@ -13,21 +13,27 @@ sockets::server::Server::Server(int domain, int service, int protocol,
     int port, u_long network_interaface, int backlog)
     : 
     AbstractServer(domain, service, protocol, port, network_interaface, backlog),
-    netIO(std::make_unique<NetworkIO>()),
+    net(std::make_unique<NetworkIO>()),
 	registry(std::make_unique<UserRegistry>()),
-	dbManager(std::make_unique<DataBaseManager>()),
-	sessionManager(std::make_unique<SessionManager>()),
-	requestHandler(std::make_unique<ChatRequestHandler>(netIO, registry, dbManager, sessionManager))
+	database(std::make_unique<DataBaseManager>()),
+	sessions(std::make_unique<SessionManager>()),
+    clientThreads(std::make_unique<ClientThreadManager>()),
+	handler(std::make_unique<RequestHandler>(*net, *registry, *database, *sessions)),
+	worker(std::make_unique<ClientConnectionWorker>(*net, *sessions, *registry, *handler))
 
 {
     // opens a handle to the file which is used as the database.
-    dbManager->dbInit();
+    database->dbInit();
     DBG("init Server.");
 }
 
 void sockets::server::Server::launch()
 {
-   lstnSocket->startLisetning();
+   if (!lstnSocket->startLisetning())
+   {
+	   std::cout << "SERVER ALREADY RUNNING" << std::endl;
+       return;
+   }
    running.store(true);
    acceptConnections();
 }
@@ -40,13 +46,11 @@ void sockets::server::Server::stop()
     running.store(false);
 
     // closes the socket listener 
-	sessionManager->endSession();
+	sessions->endSession();
     // joins every current running threads
-    for (auto& cThread : clientThreads)
-    {
-        if (cThread.joinable())
-            cThread.join();
-    }
+    clientThreads->joinAll();
+    // close handle to db
+    database->dbClose();
 }
 
 
@@ -55,7 +59,6 @@ sockets::server::Server::~Server()
     // to avoid leaks, closing the file handle and stopping the serevr on destruction
     if(running.load())
         stop();
-    dbManager->dbClose();
 }
 
 
@@ -83,83 +86,21 @@ void sockets::server::Server::acceptConnections()
         if (newSock != INVALID_SOCKET)
         {
             DBG("accepted valid socket");
-			sessionManager->addClient(newSock, clientAddr);
-            clientThreads.emplace_back(
-                &sockets::server::Server::handleConnection,
-                this,
-                newSock);
+			sessions->addClient(newSock, clientAddr);
+			clientThreads->start(&Server::handleConnection, this, std::move(newSock));
         }
     }
 }
 
 
-// handles client by recviing the length of the clients data. then reading from its socket the length amount.
 void sockets::server::Server::handleConnection(SOCKET sock)
 {
-    while(running.load())
-    {
-        // recving data
-        std::string header = netIO->recvAll(sock, messaging::REQUEST_HEADER_SIZE);
-
-        // update metadata
-		sessionManager->setClientHeader(sock, header);
-
-        // parses the header
-        auto parsedRqst = messaging::ServerProtocol::parseHeader(header.data(), header.size());
-        if (!parsedRqst)
-        {
-            DBG("HEADER ERROR");
-            removeDeadClient(sock);
-            return;
-        }
-
-        // skip reading if there is no data
-        if (parsedRqst->dataSize == 0)
-        {
-            respondToClient(sock, parsedRqst.value());
-            continue;
-        }
-        
-		// recving the body of the request
-        DBG("recving data from client");
-        std::string body = netIO->recvAll(sock, parsedRqst->dataSize);
-
-        
-        // sucsessful read. storing data and responding.
-        DBG("done rcev data");
-        if (body.size() <= 0)
-        {
-            DBG("recv failed");
-            removeDeadClient(sock);
-            return;
-        }
-		sessionManager->setClientData(sock, body);
-        respondToClient(sock, parsedRqst.value());
-    }
-
-}
-
-// prases the data and detremines which request to serve
-void sockets::server::Server::respondToClient(SOCKET sock, messaging::ParsedRequest& oldParsedRqst)
-{
-    auto refinedPr = 
-        messaging::ServerProtocol::parseData(std::move(oldParsedRqst),
-        sessionManager->getClientData(sock).data());
-
-    if (messaging::ServerProtocol::isStatusOK(refinedPr, registry->isClientExist(sock)))
-    {
-        DBG("STATUS CODE OK 200");
-        requestHandler->handleRequest(sock, refinedPr);
-        return;
-    }
-
-    DBG("STATUS CODE BAD 404");	
-
+    worker->run(sock);
 }
 
 void sockets::server::Server::removeDeadClient(SOCKET s)
 {
     // remove session and from registry
-	sessionManager->removeClient(s);
+	sessions->removeClient(s);
     registry->eraseClient(s);
 }

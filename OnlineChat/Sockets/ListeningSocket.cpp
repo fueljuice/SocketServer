@@ -1,7 +1,7 @@
 #include "ListeningSocket.h"
 
 #ifdef PR_DEBUG
-#define DBG(X) std::cout << X
+#define DBG(X) std::cout << X << std::endl
 #else
 #define DBG(X)
 #endif // PR_DEBUG
@@ -34,13 +34,28 @@ SOCKET sockets::ListeningSocket::bindSocket(SOCKET sock, sockaddr_in address)
 	return bind(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 }
 
+bool sockets::ListeningSocket::isAlreadyListening() const
+{
+	int len = sizeof(listening);
+	int result = getsockopt(getSock(), SOL_SOCKET, SO_ACCEPTCONN, (char*)&listening, &len);
+
+	if (result == SOCKET_ERROR) 
+		return false;
+
+	return (listening != 0);
+}
+
 
 // starts listening on binded port
-void sockets::ListeningSocket::startLisetning()
+bool sockets::ListeningSocket::startLisetning()
 {
+	if (isAlreadyListening())
+		return false;
+
 	listening = listen(getSock(), backlog);
 	testConnection(listening);
 	DBG("started lisetning sucsessfuly on port" << getAddress().sin_port);
+	return true;
 
 }
 

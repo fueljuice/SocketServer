@@ -36,7 +36,7 @@ namespace Client
 
     private:
         // uses SENDMESSAGE request type
-        bool sendAll(SOCKET s, const char* buf, u_int len);
+        bool sendAll(SOCKET s, const char* buf, size_t len);
 
         // passive listening members
         void passiveListenLoop();

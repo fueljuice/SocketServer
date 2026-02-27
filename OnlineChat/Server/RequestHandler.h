@@ -7,38 +7,41 @@
 #include <WinSock2.h>
 #include <memory>
 #include <utility>
+#include <functional>
+
+#include "NetworkIO.h"
+#include "UserRegistry.h"
+#include "DataBaseManager.h"
+#include "SessionManager.h"
 
 #include "../Protocol/ParsedRequest.h"
-#include "./NetworkIO.h"
-#include "./UserRegistry.h"
-#include "./DataBaseManager.h"
-#include "./SessionManager.h"
+#include "../Protocol/ServerProtocol.h"
 namespace sockets::server
 {
 /**
- * @brief Handles chat request processing for the server
+ * @brief Handles request processing for the server
  * 
- * This class provides static methods to handle different types of chat requests
+ * This class provides methods to handle different types of requests
  * including getting chat history, sending messages, user registration, and direct messaging.
  * All methods are static and stateless, requiring all necessary context to be passed as parameters.
  */
-class ChatRequestHandler
+class RequestHandler
 {
 public:
-	ChatRequestHandler(
-		std::unique_ptr<NetworkIO>& sender_p,
-		std::unique_ptr<UserRegistry>& reg_p,
-		std::unique_ptr<DataBaseManager>& dbManager_p,
-		std::unique_ptr<SessionManager>& sesManager);
+	RequestHandler(
+		NetworkIO& sender_p,
+		UserRegistry& reg_p,
+		DataBaseManager& dbManager_p,
+		SessionManager& sesManager);
 
 	void handleRequest(SOCKET sock, messaging::ParsedRequest& pr);
 
 
 private:
-	std::unique_ptr<NetworkIO>& netIO;
-	std::unique_ptr<UserRegistry>& reg;
-	std::unique_ptr<DataBaseManager>& dbManager;
-	std::unique_ptr<SessionManager>& sessionManager;
+	NetworkIO& netIO;
+	UserRegistry& reg;
+	DataBaseManager& dbManager;
+	SessionManager& sessionManager;
 
 	void handleGetChat(SOCKET sock);
 	void handleSendMessage(SOCKET sock, messaging::ParsedRequest& pr);

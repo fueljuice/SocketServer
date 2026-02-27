@@ -3,9 +3,8 @@
 #include <string>
 #include <string_view>
 #include <WinSock2.h>
+#include <iostream>
 
-#include "../Protocol/ServerProtocol.h"
-#include "../Protocol/ProtocolConstants.h"
 namespace sockets::server
 {
 	class NetworkIO final

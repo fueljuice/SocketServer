@@ -6,6 +6,7 @@
 #include <utility>
 #include <optional>
 #include <atomic>
+#include <memory>
 
 #include "./data/clientSocketData.h"
 #include "AbstractServer.h"
@@ -15,7 +16,9 @@
 #include "./DataBaseManager.h"
 #include "DataBaseManager.h"
 #include "./SessionManager.h"
-#include "./ChatRequestHandler.h"
+#include "./RequestHandler.h"
+#include "./ClientConnectionWorker.h"
+#include "./ClientThreadManager.h"
 #include "./ServerException.h"
 #include "../Protocol/ProtocolConstants.h"
 namespace sockets::server
@@ -37,19 +40,18 @@ public:
 
 private:
 	std::atomic_bool running{ false };
-	std::vector<std::thread> clientThreads;
 
-	std::unique_ptr<NetworkIO> netIO;
+	std::unique_ptr<NetworkIO> net;
 	std::unique_ptr<UserRegistry> registry;
-	std::unique_ptr<DataBaseManager> dbManager;
-	std::unique_ptr<SessionManager> sessionManager;
-	std::unique_ptr<ChatRequestHandler> requestHandler;
+	std::unique_ptr<DataBaseManager> database;
+	std::unique_ptr<SessionManager> sessions;
+	std::unique_ptr<RequestHandler> handler;
+	std::unique_ptr<ClientConnectionWorker> worker;
+	std::unique_ptr<ClientThreadManager> clientThreads;
 
 	void acceptConnections();
 
 	void handleConnection(SOCKET sock);
-
-	void respondToClient(SOCKET sock, messaging::ParsedRequest& pr);
 
 	void removeDeadClient(SOCKET s);
 

@@ -2,6 +2,7 @@
 
 bool sockets::server::NetworkIO::sendAll(SOCKET s, std::string_view payload)
 {
+	std::cout << "sending: " << payload << std::endl;
     std::lock_guard<std::mutex> lk(sendMutex);
     const std::size_t len = payload.size();
     int sent = 0, r;
@@ -23,7 +24,7 @@ std::string sockets::server::NetworkIO::recvAll(SOCKET sock, size_t size)
     size_t lengthHeaderBytes = recv(
         sock,
         data.data(),
-        size, 
+        static_cast<int>(size), 
         MSG_WAITALL);
 	return data;
 }
