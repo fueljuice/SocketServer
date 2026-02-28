@@ -129,7 +129,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client\AbstractClient.cpp" />
+    <ClCompile Include="Client\NetworkManager.cpp" />
+    <ClCompile Include="Client\PassiveListener.cpp" />
+    <ClCompile Include="Client\RequestSender.cpp" />
+    <ClCompile Include="Client\ResponseReader.cpp" />
+    <ClCompile Include="Server\ClientConnectionWorker.cpp" />
     <ClCompile Include="Server\ClientThreadManager.cpp" />
     <ClCompile Include="Server\DataBaseManager.cpp" />
     <ClCompile Include="mainClient.cpp" />
@@ -143,7 +147,6 @@
     <ClCompile Include="Protocol\ServerProtocol.cpp" />
     <ClCompile Include="Server\AbstractServer.cpp" />
     <ClCompile Include="Server\RequestHandler.cpp" />
-    <ClCompile Include="Server\ClientConnectionWorker.cpp" />
     <ClCompile Include="Server\RequestReader.cpp" />
     <ClCompile Include="Server\Server.cpp" />
     <ClCompile Include="Server\SessionManager.cpp" />
@@ -153,10 +156,17 @@
     <ClCompile Include="Server\UserRegistry.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client\AbstractClient.h" />
     <ClInclude Include="Client\ClientExceptions.h" />
     <ClInclude Include="Client\UserClient.h" />
+    <ClInclude Include="Client\NetworkManager.h" />
+    <ClInclude Include="Client\PassiveListener.h" />
+    <ClInclude Include="Client\RequestSender.h" />
+    <ClInclude Include="Client\ResponseReader.h" />
+    <ClInclude Include="Server\ClientConnectionWorker.h" />
     <ClInclude Include="Server\ClientThreadManager.h" />
+    <ClInclude Include="Server\RequestHandler.h" />
+    <ClInclude Include="Server\RequestReader.h" />
+    <ClInclude Include="Server\Server.h" />
     <ClInclude Include="Server\ServerException.h" />
     <ClInclude Include="Server\DataBaseManager.h" />
     <ClInclude Include="Protocol\ParsedResponse.h" />
@@ -167,10 +177,6 @@
     <ClInclude Include="Server\NetworkIO.h" />
     <ClInclude Include="Server\AbstractServer.h" />
     <ClInclude Include="Server\data\ClientSocketData.h" />
-    <ClInclude Include="Server\RequestHandler.h" />
-    <ClInclude Include="Server\ClientConnectionWorker.h" />
-    <ClInclude Include="Server\RequestReader.h" />
-    <ClInclude Include="Server\Server.h" />
     <ClInclude Include="Server\SessionManager.h" />
     <ClInclude Include="Sockets\ConnectingSocket.h" />
     <ClInclude Include="Sockets\ListeningSocket.h" />

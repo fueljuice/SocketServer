@@ -1,6 +1,8 @@
 #pragma once
 
 #include <WinSock2.h>
+#include <memory>
+
 #include "../Protocol/ParsedRequest.h"
 #include "NetworkIO.h"
 #include "SessionManager.h"
@@ -17,17 +19,17 @@ class ClientConnectionWorker
 {
 public:
     ClientConnectionWorker(
-        NetworkIO& net,
-        SessionManager& sessions,
-        UserRegistry& registry,
+        INetworkIO& net,
+        ISessionManager& sessions,
+        IUserRegistry& registry,
         RequestHandler& handler);
 
     void run(SOCKET sock);
 
 private:
-    NetworkIO& net;
-    SessionManager& sessions;
-    UserRegistry& registry;
+    INetworkIO& net;
+    ISessionManager& sessions;
+    IUserRegistry& registry;
     RequestHandler& handler;
     RequestReader reader;
 

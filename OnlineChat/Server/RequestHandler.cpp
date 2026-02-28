@@ -9,10 +9,10 @@
 #endif // PR_DEBUG
 
 sockets::server::RequestHandler::RequestHandler(
-	NetworkIO& sender_p, 
-	UserRegistry& reg_p,
-	DataBaseManager& dbManager_p,
-	SessionManager& sessionManager_p)
+	INetworkIO& sender_p, 
+	IUserRegistry& reg_p,
+	IdbManager& dbManager_p,
+	ISessionManager& sessionManager_p)
 	:
 	netIO(sender_p),
 	reg(reg_p),
@@ -70,15 +70,6 @@ void sockets::server::RequestHandler::handleSendMessage(SOCKET sock, messaging::
 {
 	DBG("sendMessage request called");
 
-	// cant send message before registering
-	if (!reg.isClientExist(sock))
-	{
-		// ADD ERROR CODE 
-		std::string errMsg = messaging::ServerProtocol::constructResponse("please register");
-		netIO.sendAll(sock, errMsg);
-		return;
-	}
-
 	// logs formatted message to the database
 	std::string msg = reg.getUserName(sock) + ": " + parsedRq.dataBuffer;
 	dbManager.writeToDB(parsedRq.dataBuffer);
@@ -104,51 +95,37 @@ bool sockets::server::RequestHandler::handleRegister(SOCKET sock, messaging::Par
 	netIO.sendAll(sock, payload);
 	return true;
 }
-void sockets::server::RequestHandler::broadcastHelper(std::string msg)
-{
-	DBG("broadcasting message: " << msg);
-	std::string payload = messaging::ServerProtocol::constructResponse(msg);
-	size_t idx = 0;
-	SOCKET curSock = sessionManager.getClientSocketByIndex(idx);
-	while(true)
-	{
-		SOCKET curSock = sessionManager.getClientSocketByIndex(idx);
-		if (curSock == INVALID_SOCKET)
-			break;
-		netIO.sendAll(curSock, payload);
-		idx++;
-	}
-
-}
 
 void sockets::server::RequestHandler::handleDirectMessage(SOCKET sock, messaging::ParsedRequest& parsedRq)
 {
 	// verify sender is registered
 	const std::string& senderUsername = reg.getUserName(sock);
-	if (senderUsername.empty())
-	{
-		DBG("client not registered, cannot send DM");
-		std::string payload = messaging::ServerProtocol::constructResponse("please register before sending direct messages.");
-		netIO.sendAll(sock, payload);
-		return;
-	}
 	DBG("databuffer" << parsedRq.dataBuffer);
-	// seperate recver name from message
-	std::pair<std::string, std::string> dmData = messaging::ServerProtocol::parseDirectMessage(parsedRq.dataBuffer);
-	std::string_view targetUserName = dmData.first;
-	std::string_view messageContent = dmData.second;
-	DBG("parsed DM data, target user: " << targetUserName << ", message content: " << messageContent);
+
+
+	DBG("parsed DM data, target user: " << parsedRq.dataBuffer << ", message content: " << parsedRq.recver.value());
+
 	// verify recver exists
-	if (reg.getSocket(targetUserName) == INVALID_SOCKET)
+	if (!parsedRq.recver|| reg.getSocket(parsedRq.recver.value()) == INVALID_SOCKET)
 	{
 		std::string payload = messaging::ServerProtocol::constructResponse("user not found.");
 		netIO.sendAll(sock, payload);
 		return;
 	}
-	// send dm
-	SOCKET targetSock = reg.getSocket(targetUserName);
-	std::string formattedMsg = "(DM from " + senderUsername + "): " + messageContent.data();
+
+	// send DM
+	SOCKET targetSock = reg.getSocket(parsedRq.recver.value());
+	std::string formattedMsg = "(DM from " + senderUsername + "): " + parsedRq.dataBuffer;
 	std::string payload = messaging::ServerProtocol::constructResponse(formattedMsg);
 	netIO.sendAll(sock, payload);
 
+}
+
+void sockets::server::RequestHandler::broadcastHelper(std::string msg)
+{
+	DBG("broadcasting message: " << msg);
+	std::string payload = messaging::ServerProtocol::constructResponse(msg);
+	std::vector<SOCKET> clients = sessionManager.clientsSnapshot();
+	for(SOCKET s : clients)
+		netIO.sendAll(s, payload);
 }

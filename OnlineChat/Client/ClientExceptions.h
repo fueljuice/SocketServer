@@ -54,14 +54,6 @@ public:
         : NetworkException("connection failed" + (details.empty() ? "" : ": " + details)) {}
 };
 
-// thrown when operations timeout
-class TimeoutException : public NetworkException
-{
-public:
-    explicit TimeoutException(const std::string& details = "")
-        : NetworkException("operation timed out" + (details.empty() ? "" : ": " + details)) {}
-};
-
 // thrown when received data is corrupted
 class DataCorruptionException : public ProtocolException
 {

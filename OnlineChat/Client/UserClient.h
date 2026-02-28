@@ -3,46 +3,45 @@
 #include <string>
 #include <iostream>
 #include <stdio.h>
-#include <array>
 #include <memory>
-#include <thread>
-#include <atomic>
-#include <mutex>
-#include <queue>
+#include <string>
+#include <string_view>
 
 #include "../Protocol/ClientProtocol.h"
-#include "AbstractClient.h"
 #include "ClientExceptions.h"
-
+#include "NetworkManager.h"
+#include "ResponseReader.h"
+#include "RequestSender.h"
+#include "PassiveListener.h"
+#include "../Protocol/ProtocolConstants.h"
 
 namespace Client
 {
-    class UserClient : public AbstractClient
-    {
+struct IClient
+{
+    virtual ~IClient() = default;
+    
+    // start / close
+    virtual void startClient() = 0;
+    virtual void stopClient() = 0;
 
-    public:
+    virtual void sendToServer(std::string_view msg, std::string_view rcver, messaging::ActionType action) = 0;
+};
+class UserClient : public IClient
+{
+public:
 
-        UserClient(int domain, int service, int protocol, int port, u_long network_interface);
-        ~UserClient();
+    UserClient(int domain, int service, int protocol, int port, u_long network_interface);
+    ~UserClient() override;
+    void startClient() override;
+    void stopClient() override;
 
-        // sends a packet to the server
-        void sendRequest(std::string msg, std::string recver, messaging::ActionType requestType) override;
-        // recieves a packet from the server
-        std::string recieveResponse() override;
+    void sendToServer(std::string_view msg, std::string_view rcver, messaging::ActionType action) override;
 
-        // passive listening  methods
-        void startPassiveListener();
-        void stopPassiveListener();
-
-    private:
-        // uses SENDMESSAGE request type
-        bool sendAll(SOCKET s, const char* buf, size_t len);
-
-        // passive listening members
-        void passiveListenLoop();
-        bool checkForMessages();
-
-        std::thread listenerThread;
-        std::atomic<bool> shouldListen{ false };
-    };
+private:
+    std::unique_ptr<INetworkManager> net;
+    std::unique_ptr<ResponseReader> respReader;
+    std::unique_ptr<RequestSender> rqstSender;
+    std::unique_ptr<IPassiveListener> passiveListener;
+};
 }

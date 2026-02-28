@@ -8,25 +8,22 @@
 #define DBG(X)
 #endif // PR_DEBUG
 
-messaging::ParsedResponse messaging::ClientProtocol::parseHeader(std::string_view rawHeader, size_t rawLength)
+std::optional<messaging::ParsedResponse> messaging::ClientProtocol::parseHeader(std::string_view rawHeader, size_t rawLength)
 {
 	ParsedResponse pr;
 	// header must be the correct length
 	if (rawLength != RESPONSE_HEADER_SIZE)
-	{
-		DBG("obsufcated response header");
-		throw Client::InvalidHeaderException("header size mismatch: expected " + std::to_string(RESPONSE_HEADER_SIZE)
-			+ "bytes and only got: " + std::to_string(rawLength));
-	}
+		return std::nullopt;
+
 	extractLength(pr, rawHeader);
 	return pr;
 }
 
-messaging::ParsedResponse messaging::ClientProtocol::parseData(ParsedResponse&& pr, std::string rawData)
+std::optional <messaging::ParsedResponse> messaging::ClientProtocol::parseData(ParsedResponse&& pr, std::string rawData)
 {
 	DBG("parsing data");
 	if (pr.dataSize == -1)
-		return pr;
+		return std::nullopt;
 
 	pr.dataBuffer.reserve(pr.dataSize);
 	pr.dataBuffer.assign(rawData.begin(), rawData.begin() + pr.dataSize);
@@ -58,7 +55,7 @@ std::string messaging::ClientProtocol::constructHeader(size_t msgLength, ActionT
 	char headerBuf[REQUEST_HEADER_SIZE + 1] = { 0 };
 	sprintf_s(
 		headerBuf,
-		static_cast<int>(sizeof(headerBuf)), 
+		static_cast<int>(sizeof(headerBuf)),
 		"%0*u%0*u%u",
 		static_cast<int>(REQUEST_DATA_LENGTH_SIZE),
 		static_cast<int>(msgLength),

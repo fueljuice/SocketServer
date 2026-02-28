@@ -1,8 +1,12 @@
 #include "NetworkIO.h"
-
+#ifdef PR_DEBUG
+#define DBG(X) std::cout << X << std::endl
+#else
+#define DBG(X)
+#endif // PR_DEBUG
 bool sockets::server::NetworkIO::sendAll(SOCKET s, std::string_view payload)
 {
-	std::cout << "sending: " << payload << std::endl;
+	DBG("sending: ");
     std::lock_guard<std::mutex> lk(sendMutex);
     const std::size_t len = payload.size();
     int sent = 0, r;
@@ -17,7 +21,7 @@ bool sockets::server::NetworkIO::sendAll(SOCKET s, std::string_view payload)
     return true;
 }
 
-std::string sockets::server::NetworkIO::recvAll(SOCKET sock, size_t size)
+std::optional<std::string> sockets::server::NetworkIO::recvAll(SOCKET sock, size_t size)
 {
     std::string data;
     data.resize(size);
@@ -26,5 +30,8 @@ std::string sockets::server::NetworkIO::recvAll(SOCKET sock, size_t size)
         data.data(),
         static_cast<int>(size), 
         MSG_WAITALL);
+    // verfies everything was sent
+    if (size != data.size())
+        return std::nullopt;
 	return data;
 }

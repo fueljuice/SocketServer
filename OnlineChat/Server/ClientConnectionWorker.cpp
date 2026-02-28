@@ -8,9 +8,9 @@
 #endif // PR_DEBUG
 
 sockets::server::ClientConnectionWorker::ClientConnectionWorker(
-    NetworkIO& net,
-    SessionManager& sessions,
-    UserRegistry& registry,
+    INetworkIO& net,
+    ISessionManager& sessions,
+    IUserRegistry& registry,
     RequestHandler& handler)
     : net(net),
     sessions(sessions),
@@ -41,9 +41,15 @@ void sockets::server::ClientConnectionWorker::removeDeadClient(SOCKET sock)
 
 void sockets::server::ClientConnectionWorker::respond(SOCKET sock, messaging::ParsedRequest& oldParsedRqst)
 {
+	std::string rawData = sessions.getClientData(sock).data();
     auto refinedPr = 
         messaging::ServerProtocol::parseData(std::move(oldParsedRqst),
-        sessions.getClientData(sock).data());
-    handler.handleRequest(sock, refinedPr);
+            rawData.data());
+    if(!refinedPr)
+    {
+        DBG("DATA ERROR");
+        return;
+	}
+    handler.handleRequest(sock, refinedPr.value());
    
 } 

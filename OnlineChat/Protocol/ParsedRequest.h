@@ -1,5 +1,6 @@
 #pragma once
-
+#include <optional>
+#include <utility>
 #include "ProtocolConstants.h"
 #include <string>
 
@@ -7,10 +8,11 @@ namespace messaging
 {
 struct ParsedRequest
 {
-	int dataSize;
+	std::optional<std::string> recver;
+	std::string dataBuffer;
+	unsigned int dataSize;
 	ActionType requestType;
 	unsigned int protocolVersion;
-	std::string dataBuffer;
 
 	ParsedRequest();
 	ParsedRequest(ParsedRequest&& other) noexcept = default;

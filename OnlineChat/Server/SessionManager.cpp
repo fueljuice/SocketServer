@@ -36,16 +36,15 @@ std::string sockets::server::SessionManager::getClientData(SOCKET s) const
     return "";
 }
 
-SOCKET sockets::server::SessionManager::getClientSocketByIndex(size_t idx) const
+std::vector<SOCKET> sockets::server::SessionManager::clientsSnapshot() const
 {
-	std::lock_guard<std::mutex> lk(clientsMetaDataMutex);
-    if (idx >= clientsMetaData.size())
-		return INVALID_SOCKET;
-	auto it = clientsMetaData.begin();
-	std::advance(it, idx);
-    return it->first;
+    std::lock_guard<std::mutex> lk(clientsMetaDataMutex);
+    std::vector<SOCKET> snapshot;
+    snapshot.reserve(clientsMetaData.size());
+    for (const auto& [sock, metadata] : clientsMetaData)
+        snapshot.push_back(sock);
+    return snapshot;
 }
-
 
 
 bool sockets::server::SessionManager::setClientData(SOCKET s, std::string_view buf)

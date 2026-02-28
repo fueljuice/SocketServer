@@ -12,13 +12,12 @@ namespace sockets::server
 class RequestReader
 {
 public:
-    RequestReader(NetworkIO& net, SessionManager& sessions);
-
+    RequestReader(INetworkIO& net, ISessionManager& sessions);
     std::optional<messaging::ParsedRequest> readNext(SOCKET sock);
 
 private:
-    NetworkIO& net;
-    SessionManager& sessions;
+    INetworkIO& net;
+    ISessionManager& sessions;
 };
 
 }

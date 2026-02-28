@@ -9,18 +9,30 @@
 #include "../Server/ServerException.h"
 namespace sockets::server
 {
-class UserRegistry
+
+struct IUserRegistry
+{
+	virtual ~IUserRegistry() = default;
+	virtual bool eraseClient(SOCKET sock) = 0;
+	virtual bool registerUserName(SOCKET sock, std::string_view userName) = 0;
+
+	virtual bool isClientExist(SOCKET sock) const = 0;
+	virtual bool isUserNameExist(std::string_view userName) const = 0;
+
+	virtual std::string getUserName(SOCKET sock)  const = 0;
+	virtual SOCKET getSocket(std::string_view targetUserName) const = 0;
+};
+class UserRegistry : public IUserRegistry
 {
 public:
-	bool eraseClient(SOCKET sock);
-	bool registerUserName(SOCKET sock, std::string_view userName);
+	bool eraseClient(SOCKET sock) override;
+	bool registerUserName(SOCKET sock, std::string_view userName) override;
 
+	bool isClientExist(SOCKET sock) const override;
+	bool isUserNameExist(std::string_view userName) const override;
 
-	bool isClientExist(SOCKET sock) const;
-	bool isUserNameExist(std::string_view userName) const;
-
-	std::string getUserName(SOCKET sock)  const;
-	SOCKET getSocket(std::string_view targetUserName) const;
+	std::string getUserName(SOCKET sock)  const override;
+	SOCKET getSocket(std::string_view targetUserName) const override;
 
 private:
 	std::unordered_map<SOCKET, std::string> clientUserNameMap;

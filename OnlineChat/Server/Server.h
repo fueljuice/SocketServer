@@ -23,9 +23,6 @@
 #include "../Protocol/ProtocolConstants.h"
 namespace sockets::server
 {
-
-
-
 class Server final: public AbstractServer
 {
 
@@ -39,22 +36,18 @@ public:
 	~Server();
 
 private:
-	std::atomic_bool running{ false };
+	void initWorker(SOCKET sock);
+	std::atomic_bool running;
 
-	std::unique_ptr<NetworkIO> net;
-	std::unique_ptr<UserRegistry> registry;
-	std::unique_ptr<DataBaseManager> database;
-	std::unique_ptr<SessionManager> sessions;
+	std::unique_ptr<INetworkIO> net;
+	std::unique_ptr<IUserRegistry> registry;
+	std::unique_ptr<IdbManager> database;
+	std::unique_ptr<ISessionManager> sessions;
 	std::unique_ptr<RequestHandler> handler;
 	std::unique_ptr<ClientConnectionWorker> worker;
 	std::unique_ptr<ClientThreadManager> clientThreads;
 
 	void acceptConnections();
-
-	void handleConnection(SOCKET sock);
-
-	void removeDeadClient(SOCKET s);
-
 	
 };
 }

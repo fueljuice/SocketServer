@@ -1,18 +1,26 @@
 #pragma once
+#include <iostream>
 #include <mutex>
 #include <string>
 #include <string_view>
 #include <WinSock2.h>
-#include <iostream>
+#include <optional>
 
 namespace sockets::server
 {
-	class NetworkIO final
+
+struct INetworkIO
+{
+	virtual ~INetworkIO() = default;
+	virtual bool sendAll(SOCKET sock, std::string_view payload) = 0;
+	virtual std::optional<std::string> recvAll(SOCKET sock, size_t size) = 0;
+};
+class NetworkIO : public INetworkIO
 {
 public:
 	// TODO: ADD STATUS CODE IN THE RESPONSE
 	bool sendAll(SOCKET sock, std::string_view payload);
-	std::string recvAll(SOCKET sock, size_t size);
+	std::optional<std::string> recvAll(SOCKET sock, size_t size);
 	bool sendError(SOCKET sock, int statusCode);
 
 private:

@@ -28,7 +28,7 @@ namespace messaging
 
     
     // request action types
-    enum class ActionType : size_t
+    enum class ActionType : int
     {
         INVALID = -1,
         GET_CHAT = 1,

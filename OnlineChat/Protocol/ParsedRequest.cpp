@@ -6,5 +6,7 @@
 messaging::ParsedRequest::ParsedRequest()
 	:
 	dataSize(-1),
-	requestType(ActionType::INVALID)
+	requestType(ActionType::INVALID),
+	protocolVersion(0),
+	recver(std::nullopt)
 	{}

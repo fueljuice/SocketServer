@@ -8,6 +8,7 @@
 #include <memory>
 #include <utility>
 #include <functional>
+#include <vector>
 
 #include "NetworkIO.h"
 #include "UserRegistry.h"
@@ -29,20 +30,19 @@ class RequestHandler
 {
 public:
 	RequestHandler(
-		NetworkIO& sender_p,
-		UserRegistry& reg_p,
-		DataBaseManager& dbManager_p,
-		SessionManager& sesManager);
+		INetworkIO& sender_p,
+		IUserRegistry& reg_p,
+		IdbManager& dbManager_p,
+		ISessionManager& sesManager);
 
 	void handleRequest(SOCKET sock, messaging::ParsedRequest& pr);
 
 
 private:
-	NetworkIO& netIO;
-	UserRegistry& reg;
-	DataBaseManager& dbManager;
-	SessionManager& sessionManager;
-
+	INetworkIO& netIO;
+	IUserRegistry& reg;
+	IdbManager& dbManager;
+	ISessionManager& sessionManager;
 	void handleGetChat(SOCKET sock);
 	void handleSendMessage(SOCKET sock, messaging::ParsedRequest& pr);
 	void handleDirectMessage(SOCKET sock, messaging::ParsedRequest& pr);
@@ -52,3 +52,4 @@ private:
 
 };
 }
+

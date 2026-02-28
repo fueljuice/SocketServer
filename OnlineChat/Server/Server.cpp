@@ -19,7 +19,8 @@ sockets::server::Server::Server(int domain, int service, int protocol,
 	sessions(std::make_unique<SessionManager>()),
     clientThreads(std::make_unique<ClientThreadManager>()),
 	handler(std::make_unique<RequestHandler>(*net, *registry, *database, *sessions)),
-	worker(std::make_unique<ClientConnectionWorker>(*net, *sessions, *registry, *handler))
+	worker(std::make_unique<ClientConnectionWorker>(*net, *sessions, *registry, *handler)),
+    running(false)
 
 {
     // opens a handle to the file which is used as the database.
@@ -72,6 +73,7 @@ void sockets::server::Server::acceptConnections()
     // running while the atomic member is true (on).
     while(running.load())
     {
+        DBG("new accept loop");
         sockaddr clientAddr{};
         addrLen = sizeof(clientAddr);
 
@@ -87,20 +89,12 @@ void sockets::server::Server::acceptConnections()
         {
             DBG("accepted valid socket");
 			sessions->addClient(newSock, clientAddr);
-			clientThreads->start(&Server::handleConnection, this, std::move(newSock));
+            clientThreads->start(&sockets::server::Server::initWorker, this, std::move(newSock));
         }
     }
 }
 
-
-void sockets::server::Server::handleConnection(SOCKET sock)
+void sockets::server::Server::initWorker(SOCKET sock)
 {
     worker->run(sock);
-}
-
-void sockets::server::Server::removeDeadClient(SOCKET s)
-{
-    // remove session and from registry
-	sessions->removeClient(s);
-    registry->eraseClient(s);
 }

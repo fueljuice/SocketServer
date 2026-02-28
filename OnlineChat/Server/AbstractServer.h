@@ -15,13 +15,6 @@ public:
 	virtual void launch() = 0;
 	virtual void stop() = 0;
 
-
-	// should not copy since double owning a listening socket can result double close
-	// rule of three
-	virtual ~AbstractServer() = default;
-	AbstractServer(const AbstractServer&) = delete;
-	AbstractServer& operator=(const AbstractServer&) = delete;
-
 protected:
 	// a listening socket member to handle the listening accepting and closing of the server socket
 	std::unique_ptr<ListeningSocket> lstnSocket;
