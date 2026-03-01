@@ -2,6 +2,13 @@
 #include "RequestHandler.h"
 #include "../Protocol/ProtocolConstants.h"
 
+#include "ClientConnectionWorker.h"
+#include "ClientThreadManager.h"
+#include "DataBaseManager.h"
+#include "NetworkIO.h"
+#include "SessionManager.h"
+#include "UserRegistry.h"
+
 #ifdef PR_DEBUG
 #define DBG(X) std::cout << X << std::endl
 #else
@@ -11,21 +18,43 @@
 // constructor that init the base server
 sockets::server::Server::Server(int domain, int service, int protocol,
     int port, u_long network_interaface, int backlog)
-    : 
-    AbstractServer(domain, service, protocol, port, network_interaface, backlog),
-    net(std::make_unique<NetworkIO>()),
-	registry(std::make_unique<UserRegistry>()),
-	database(std::make_unique<DataBaseManager>()),
-	sessions(std::make_unique<SessionManager>()),
-    clientThreads(std::make_unique<ClientThreadManager>()),
-	handler(std::make_unique<RequestHandler>(*net, *registry, *database, *sessions)),
-	worker(std::make_unique<ClientConnectionWorker>(*net, *sessions, *registry, *handler)),
-    running(false)
+    : Server(domain, service, protocol, port, network_interaface, backlog,
+		std::make_unique<NetworkIO>(),
+		std::make_unique<UserRegistry>(),
+		std::make_unique<DataBaseManager>(),
+		std::make_unique<SessionManager>(),
+		nullptr,
+		nullptr,
+		std::make_unique<ClientThreadManager>())
+{
+	// default construction path keeps prior behavior
+	handler = std::make_unique<RequestHandler>(*net, *registry, *database, *sessions);
+	worker = std::make_unique<ClientConnectionWorker>(*net, *sessions, *registry, *handler);
+	database->dbInit();
+}
+
+sockets::server::Server::Server(int domain, int service, int protocol,
+	int port, u_long network_interaface, int backlog,
+	std::unique_ptr<INetworkIO> net,
+	std::unique_ptr<IUserRegistry> registry,
+	std::unique_ptr<IdbManager> database,
+	std::unique_ptr<ISessionManager> sessions,
+	std::unique_ptr<IRequestHandler> handler,
+	std::unique_ptr<IClientConnectionWorker> worker,
+	std::unique_ptr<ClientThreadManager> clientThreads)
+	:
+	AbstractServer(domain, service, protocol, port, network_interaface, backlog),
+	net(std::move(net)),
+	registry(std::move(registry)),
+	database(std::move(database)),
+	sessions(std::move(sessions)),
+	handler(std::move(handler)),
+	worker(std::move(worker)),
+	clientThreads(std::move(clientThreads)),
+	running(false)
 
 {
-    // opens a handle to the file which is used as the database.
-    database->dbInit();
-    DBG("init Server.");
+	DBG("init Server.");
 }
 
 void sockets::server::Server::launch()

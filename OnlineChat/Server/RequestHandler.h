@@ -19,14 +19,12 @@
 #include "../Protocol/ServerProtocol.h"
 namespace sockets::server
 {
-/**
- * @brief Handles request processing for the server
- * 
- * This class provides methods to handle different types of requests
- * including getting chat history, sending messages, user registration, and direct messaging.
- * All methods are static and stateless, requiring all necessary context to be passed as parameters.
- */
-class RequestHandler
+struct IRequestHandler
+{
+public:
+	virtual void handleRequest(SOCKET sock, messaging::ParsedRequest& parsdRqst) = 0;
+};
+class RequestHandler : public IRequestHandler
 {
 public:
 	RequestHandler(
@@ -35,7 +33,7 @@ public:
 		IdbManager& dbManager_p,
 		ISessionManager& sesManager);
 
-	void handleRequest(SOCKET sock, messaging::ParsedRequest& pr);
+	void handleRequest(SOCKET sock, messaging::ParsedRequest& parsdRqst);
 
 
 private:
@@ -44,9 +42,9 @@ private:
 	IdbManager& dbManager;
 	ISessionManager& sessionManager;
 	void handleGetChat(SOCKET sock);
-	void handleSendMessage(SOCKET sock, messaging::ParsedRequest& pr);
-	void handleDirectMessage(SOCKET sock, messaging::ParsedRequest& pr);
-	bool handleRegister(SOCKET sock, messaging::ParsedRequest& pr);
+	void handleSendMessage(SOCKET sock, messaging::ParsedRequest& parsdRqst);
+	void handleDirectMessage(SOCKET sock, messaging::ParsedRequest& parsdRqst);
+	bool handleRegister(SOCKET sock, messaging::ParsedRequest& parsdRqst);
 
 	void broadcastHelper(std::string msg);
 

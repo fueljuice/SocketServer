@@ -7,6 +7,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 #include "./Server/Server.h"   
+#include "./Server/ServerBuilder.h"
 #include "./Client/UserClient.h"
 
 
@@ -17,15 +18,16 @@ int main()
 //SERVER
     try 
     {
-        sockets::server::Server server(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT, INADDR_ANY, SOMAXCONN);
+        sockets::server::ServerBuilder builder(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT, INADDR_ANY, SOMAXCONN);
+        auto server = builder.build();
 
         std::cout << "Starting TestServer on port " << PORT << std::endl;
-        server.launch();
+        server->launch();
 
         std::cout << "Server running. Press <Enter> to stop." << std::endl;
         std::cin.get();
 
-        server.stop();
+        server->stop();
     }
     catch (const std::exception& ex) 
     {

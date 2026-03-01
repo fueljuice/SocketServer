@@ -60,7 +60,11 @@ std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseData(Par
 
 	// handle direct message
 	if (parsedRqst.requestType == ActionType::DIRECT_MESSAGE)
+	{
 		parseDirectMessage(parsedRqst, rawData);
+		if (!parsedRqst.recver)
+			return std::nullopt;
+	}
 
 	// handle other types
 	else if(parsedRqst.requestType != ActionType::INVALID)

@@ -11,19 +11,19 @@ sockets::server::ClientConnectionWorker::ClientConnectionWorker(
     INetworkIO& net,
     ISessionManager& sessions,
     IUserRegistry& registry,
-    RequestHandler& handler)
+    IRequestHandler& handler)
     : net(net),
     sessions(sessions),
     registry(registry),
     handler(handler),
-    reader(net, sessions) {}
+    reader(std::make_unique<RequestReader>(net, sessions)) {}
 
 void sockets::server::ClientConnectionWorker::run(SOCKET sock)
 {
     while (true)
     {
         // read from client
-        auto req = reader.readNext(sock);
+        auto req = reader->readNext(sock);
         if (!req)
         {
             removeDeadClient(sock);

@@ -19,8 +19,11 @@ namespace messaging
 	constexpr char REQUEST_DATA_SEPERATOR = ':';
 
 	// RESPONSE CONSTANTS:
-    constexpr size_t RESPONSE_DATA_LENGTH_SIZE = 4;      // size of data length
+    constexpr size_t RESPONSE_DATA_LENGTH_SIZE = 4;     // size of data len
     constexpr size_t RESPONSE_HEADER_SIZE = 4;           // size header
+
+    // response offsets
+    constexpr size_t RESPONSE_DATA_LENGTH_OFFSET = 0; // bytes 0-3: data length field
 
     // MAXIMUM VALUES
     constexpr size_t MAX_MESSAGE_LENGTH = 9999;    // maximum message length

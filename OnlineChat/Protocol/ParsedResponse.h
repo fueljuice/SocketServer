@@ -6,7 +6,7 @@ namespace messaging
 struct ParsedResponse
 {
 	ParsedResponse();
-	unsigned int dataSize;
+	int dataSize;
 	std::string dataBuffer;
 
 

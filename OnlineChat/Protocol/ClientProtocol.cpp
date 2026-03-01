@@ -8,22 +8,30 @@
 #define DBG(X)
 #endif // PR_DEBUG
 
-std::optional<messaging::ParsedResponse> messaging::ClientProtocol::parseHeader(std::string_view rawHeader, size_t rawLength)
+std::optional<messaging::ParsedResponse> messaging::ClientProtocol::parseHeader(
+	std::string_view rawHeader,
+	size_t rawLength)
 {
-	ParsedResponse pr;
+	ParsedResponse prsdRqst;
 	// header must be the correct length
 	if (rawLength != RESPONSE_HEADER_SIZE)
 		return std::nullopt;
 
-	extractLength(pr, rawHeader);
-	return pr;
+	// extract and validate length
+	extractLength(prsdRqst, rawHeader);
+	if (prsdRqst.dataSize < 0 || prsdRqst.dataSize > MAX_MESSAGE_LENGTH)
+		return std::nullopt;
+
+	return prsdRqst;
 }
 
-std::optional <messaging::ParsedResponse> messaging::ClientProtocol::parseData(ParsedResponse&& prsdRqst, std::string rawData)
+std::optional <messaging::ParsedResponse> messaging::ClientProtocol::parseData(
+	ParsedResponse&& prsdRqst,
+	std::string rawData)
 {
 	DBG("parsing data");
 
-	if (prsdRqst.dataSize == -1)
+	if (prsdRqst.dataSize <= 0)
 		return std::nullopt;
 
 	prsdRqst.dataBuffer.reserve(prsdRqst.dataSize);
@@ -82,7 +90,7 @@ void messaging::ClientProtocol::extractLength(ParsedResponse& pr, std::string_vi
 
 	// make a buffer the size of the length field in the header
 	char cRawHeader[REQUEST_DATA_LENGTH_SIZE + 1] = { 0 };
-	memcpy(cRawHeader, rawHeader.data(), REQUEST_DATA_LENGTH_SIZE);
+	memcpy(cRawHeader, rawHeader.data() + RESPONSE_DATA_LENGTH_OFFSET, REQUEST_DATA_LENGTH_SIZE);
 	DBG("raw header length field: " << cRawHeader);
 
 	// convert the length field to an integer
@@ -93,18 +101,14 @@ void messaging::ClientProtocol::extractLength(ParsedResponse& pr, std::string_vi
 	if (cRawHeader == endptr)
 	{
 		DBG("failed extract length from header ");
-		throw Client::InvalidHeaderException("Failed to extract length from header");
+		pr.dataSize = -1;
+		return;
 	}
 
-	// check if length is ok
-	if (intLength < 0 || intLength > MAX_MESSAGE_LENGTH)
-	{
-		DBG("invalid length value: " << intLength);
-		throw Client::InvalidHeaderException("Invalid length value: " + std::to_string(intLength));
-	}
 	// sucsessful extraction
 	pr.dataSize = intLength;
 	DBG("sucsess length extraction :" << intLength);
 }
+
 
 

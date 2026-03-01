@@ -11,7 +11,8 @@ using optStr = std::optional<std::string>;
 
 Client::ResponseReader::ResponseReader(INetworkManager& net_p)
     : net(net_p)
-{}
+{
+}
 
 
 
@@ -39,7 +40,9 @@ optStr Client::ResponseReader::readResponse()
 
     optPrsdResp refindPrsdRqst = messaging::ClientProtocol::parseData(
         std::move(*prsdRqst),
-        *dataResp
-    );
+        *dataResp);
+    if (!refindPrsdRqst)
+        return std::nullopt;
+
     return refindPrsdRqst->dataBuffer;
 }

@@ -14,24 +14,27 @@
 
 namespace sockets::server
 {
-
-class ClientConnectionWorker
+struct IClientConnectionWorker
+{
+    virtual void run(SOCKET sock) = 0;
+};
+class ClientConnectionWorker : public IClientConnectionWorker
 {
 public:
     ClientConnectionWorker(
         INetworkIO& net,
         ISessionManager& sessions,
         IUserRegistry& registry,
-        RequestHandler& handler);
+        IRequestHandler& handler);
 
-    void run(SOCKET sock);
+    void run(SOCKET sock) override;
 
 private:
     INetworkIO& net;
     ISessionManager& sessions;
     IUserRegistry& registry;
-    RequestHandler& handler;
-    RequestReader reader;
+    IRequestHandler& handler;
+    std::unique_ptr<RequestReader> reader;
 
     void removeDeadClient(SOCKET sock);
 };
