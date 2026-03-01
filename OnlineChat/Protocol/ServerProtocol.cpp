@@ -112,8 +112,8 @@ void messaging::ServerProtocol::parseDirectMessage(ParsedRequest& pr, std::strin
 		return;
 	}
 	// sucsessful extraction
-	pr.dataBuffer = std::string(dmData.substr(0, seperatorPos));
-	pr.recver = std::string(dmData.substr(seperatorPos + 1));
+	pr.recver = std::string(dmData.substr(0, seperatorPos));
+	pr.dataBuffer = std::string(dmData.substr(seperatorPos + 1));
 
 }
 

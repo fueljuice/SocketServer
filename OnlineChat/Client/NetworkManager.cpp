@@ -18,7 +18,8 @@ Client::NetworkManager::NetworkManager(
         protocol,
         port,
         network_interface))
-    {}
+{
+}
 
 Client::NetworkManager::~NetworkManager()
 {
@@ -36,7 +37,8 @@ bool Client::NetworkManager::sendAll(std::string_view payload)
     {
         r = send(sock, payload.data() + sent, len - sent, 0);
         if (r <= 0)
-            return false;
+            throw ConnectionException("server was closed");
+        //return false;
         sent += r;
     }
     return true;
@@ -54,10 +56,31 @@ std::optional<std::string> Client::NetworkManager::recvAll(size_t size)
         static_cast<int>(size),
         MSG_WAITALL);
 
+    if (lengthHeaderBytes == 0 || SOCKET_ERROR == lengthHeaderBytes)
+        throw ConnectionException("server was closed");
+
     // verfies everything was sent
     if (size != lengthHeaderBytes)
         return std::nullopt;
     return data;
+}
+
+bool Client::NetworkManager::isSocketClosed()
+{
+    char c;
+    int r = recv(getSock(), &c, 1, MSG_PEEK);
+
+    if (r == 0)
+        return true;
+    if (r == SOCKET_ERROR)
+    {
+        int err = WSAGetLastError();
+        if (err == WSAECONNRESET || err == WSAENOTCONN || err == WSAECONNABORTED)
+            return true;
+        if (err == WSAEWOULDBLOCK)
+            return false;
+    }
+    return false;
 }
 
 SOCKET Client::NetworkManager::getSock()

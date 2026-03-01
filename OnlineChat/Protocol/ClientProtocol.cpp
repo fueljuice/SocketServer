@@ -19,15 +19,17 @@ std::optional<messaging::ParsedResponse> messaging::ClientProtocol::parseHeader(
 	return pr;
 }
 
-std::optional <messaging::ParsedResponse> messaging::ClientProtocol::parseData(ParsedResponse&& pr, std::string rawData)
+std::optional <messaging::ParsedResponse> messaging::ClientProtocol::parseData(ParsedResponse&& prsdRqst, std::string rawData)
 {
 	DBG("parsing data");
-	if (pr.dataSize == -1)
+
+	if (prsdRqst.dataSize == -1)
 		return std::nullopt;
 
-	pr.dataBuffer.reserve(pr.dataSize);
-	pr.dataBuffer.assign(rawData.begin(), rawData.begin() + pr.dataSize);
-	return pr;
+	prsdRqst.dataBuffer.reserve(prsdRqst.dataSize);
+	prsdRqst.dataBuffer.assign(rawData.begin(), rawData.begin() + prsdRqst.dataSize);
+	DBG("parsed data:" << prsdRqst.dataBuffer);
+	return prsdRqst;
 }
 
 std::string messaging::ClientProtocol::constructRequest(
@@ -36,9 +38,8 @@ std::string messaging::ClientProtocol::constructRequest(
 	ActionType requestType)
 {
 	// calculate total payload size
-	const size_t payloadLength = REQUEST_HEADER_SIZE + msg.size() + recver.size();
-	std::string header = constructHeader(msg.size() + recver.size(), requestType);
 	std::string data = constructData(msg, recver);
+	std::string header = constructHeader(data.size(), requestType);
 	return header + data;
 }
 
@@ -60,7 +61,7 @@ std::string messaging::ClientProtocol::constructHeader(size_t msgLength, ActionT
 		static_cast<int>(REQUEST_DATA_LENGTH_SIZE),
 		static_cast<int>(msgLength),
 		static_cast<int>(REQUEST_TYPE_SIZE),
-		requestType,
+		static_cast<int>(requestType),
 		static_cast<int>(PROTOCOL_VERSION));
 
 	DBG("constructed header: " << headerBuf);

@@ -118,7 +118,7 @@ void sockets::server::RequestHandler::handleDirectMessage(SOCKET sock, messaging
 	SOCKET targetSock = reg.getSocket(parsedRq.recver.value());
 	std::string formattedMsg = "(DM from " + senderUsername + "): " + parsedRq.dataBuffer;
 	std::string payload = messaging::ServerProtocol::constructResponse(formattedMsg);
-	netIO.sendAll(sock, payload);
+	netIO.sendAll(targetSock, payload);
 
 }
 
