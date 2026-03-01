@@ -78,12 +78,11 @@ public:
 
                     if (choice == "/msg")
                     {
-                        std::cout << "enter username to register: ";
+                        std::cout << "msg to send ";
                         std::string msg;
                         std::cin >> msg;
                         if (msg.empty())
-                            std::cout << "username is empty, registration cancelled" << std::endl;
-                        // std::cout << "registering user " << msg << "..." << std::endl;
+                            std::cout << "msg empty cant send" << std::endl;
                         client->sendToServer(msg, "", messaging::ActionType::SEND_MESSAGE);
                     }
                     else if (choice == "/reg")
@@ -149,7 +148,7 @@ public:
     }
 };
 
-int mainClient()
+int main()
 {
     auto client = ClientManager::createClient();
     if (!client) {

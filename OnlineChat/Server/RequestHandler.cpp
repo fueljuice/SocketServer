@@ -127,6 +127,10 @@ void sockets::server::RequestHandler::broadcastHelper(std::string msg)
 	DBG("broadcasting message: " << msg);
 	std::string payload = messaging::ServerProtocol::constructResponse(msg);
 	std::vector<SOCKET> clients = sessionManager.clientsSnapshot();
+	// brodcasts to every registered user
 	for(SOCKET s : clients)
-		netIO.sendAll(s, payload);
+	{	
+		if(reg.isClientExist(s))
+			netIO.sendAll(s, payload);
+	}
 }
