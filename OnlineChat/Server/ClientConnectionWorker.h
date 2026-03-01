@@ -34,6 +34,5 @@ private:
     RequestReader reader;
 
     void removeDeadClient(SOCKET sock);
-    void respond(SOCKET sock, messaging::ParsedRequest& parsed);
 };
 }

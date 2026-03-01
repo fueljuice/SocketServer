@@ -69,7 +69,7 @@ std::string messaging::ClientProtocol::constructHeader(size_t msgLength, ActionT
 
 std::string messaging::ClientProtocol::constructData(std::string_view msg, std::string_view recver)
 {
-	if (recver.empty())
+	if (!recver.empty())
 		return std::string(recver) + REQUEST_DATA_SEPERATOR + std::string(msg);
 	return std::string(msg);
 }

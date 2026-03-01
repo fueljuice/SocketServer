@@ -2,6 +2,8 @@
 
 #include <WinSock2.h>
 #include <optional>
+#include <utility>
+
 #include "../Protocol/ParsedRequest.h"
 #include "NetworkIO.h"
 #include "SessionManager.h"

@@ -45,7 +45,13 @@ std::optional<messaging::ParsedRequest> sockets::server::RequestReader::readNext
         DBG("recv failed");
         return std::nullopt;
     }
+    //
+    auto refinedParsedRqst = messaging::ServerProtocol::parseData(std::move(*parsedRqst), *data);
+    if (!parsedRqst)
+        return std::nullopt;
+
     // sucsessful read, update metadata
-    sessions.setClientData(sock, data.value());
-    return parsedRqst;
+    DBG("buf:" << refinedParsedRqst->dataBuffer);
+    sessions.setClientData(sock, *data);
+    return refinedParsedRqst;
 }

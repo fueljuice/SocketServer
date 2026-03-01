@@ -63,6 +63,7 @@ void sockets::server::RequestHandler::handleGetChat(SOCKET sock)
 	DBG("getChat request called");
 	std::string dbContent = dbManager.readDB();
 	std::string payload = messaging::ServerProtocol::constructResponse(dbContent);
+	DBG("sending this in getchat:" << payload);
 	netIO.sendAll(sock, payload);
 }
 

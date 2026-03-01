@@ -78,7 +78,7 @@ bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr, bool isRegis
 		return false;
 	}
 	DBG("protocol version OK");
-
+	DBG(static_cast<int>(pr.requestType) << ", " << pr.dataSize << ", " << pr.dataBuffer << ", " << isRegistered);
 	// GET_CHAT
 	if (pr.requestType == ActionType::GET_CHAT && pr.dataSize == 0) return true;// && isRegistered) return true; RETURN. ONLY FOR TESTING
 
@@ -125,7 +125,6 @@ void messaging::ServerProtocol::extractLength(ParsedRequest& pr, const char* raw
 	int length;
 	char charLength[messaging::REQUEST_DATA_LENGTH_SIZE + 1] = {0};
 	DBG("extracting length..");
-	
 	
 	
 	// reads for bytes and converts them into int

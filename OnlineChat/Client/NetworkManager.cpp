@@ -55,7 +55,7 @@ std::optional<std::string> Client::NetworkManager::recvAll(size_t size)
         MSG_WAITALL);
 
     // verfies everything was sent
-    if (size != data.size())
+    if (size != lengthHeaderBytes)
         return std::nullopt;
     return data;
 }

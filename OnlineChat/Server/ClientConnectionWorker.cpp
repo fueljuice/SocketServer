@@ -22,15 +22,19 @@ void sockets::server::ClientConnectionWorker::run(SOCKET sock)
 {
     while (true)
     {
+        // read from client
         auto req = reader.readNext(sock);
         if (!req)
         {
             removeDeadClient(sock);
             return;
         }
-        respond(sock, req.value());
+        // respond if hes avaiable
+        handler.handleRequest(sock, req.value());
     }
 }
+
+
 
 void sockets::server::ClientConnectionWorker::removeDeadClient(SOCKET sock)
 {
@@ -39,17 +43,3 @@ void sockets::server::ClientConnectionWorker::removeDeadClient(SOCKET sock)
     registry.eraseClient(sock);
 }
 
-void sockets::server::ClientConnectionWorker::respond(SOCKET sock, messaging::ParsedRequest& oldParsedRqst)
-{
-	std::string rawData = sessions.getClientData(sock).data();
-    auto refinedPr = 
-        messaging::ServerProtocol::parseData(std::move(oldParsedRqst),
-            rawData.data());
-    if(!refinedPr)
-    {
-        DBG("DATA ERROR");
-        return;
-	}
-    handler.handleRequest(sock, refinedPr.value());
-   
-} 

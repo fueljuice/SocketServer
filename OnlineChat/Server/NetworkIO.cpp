@@ -31,7 +31,7 @@ std::optional<std::string> sockets::server::NetworkIO::recvAll(SOCKET sock, size
         static_cast<int>(size), 
         MSG_WAITALL);
     // verfies everything was sent
-    if (size != data.size())
+    if (size != lengthHeaderBytes)
         return std::nullopt;
 	return data;
 }

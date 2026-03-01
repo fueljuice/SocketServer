@@ -10,9 +10,9 @@ struct ParsedRequest
 {
 	std::optional<std::string> recver;
 	std::string dataBuffer;
-	unsigned int dataSize;
+	int dataSize;
 	ActionType requestType;
-	unsigned int protocolVersion;
+	int protocolVersion;
 
 	ParsedRequest();
 	ParsedRequest(ParsedRequest&& other) noexcept = default;
