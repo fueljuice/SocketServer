@@ -1,5 +1,5 @@
 #include "DataBaseManager.h"
-#define dbFileDir   "C:\\Users\\zohar\\Desktop\\dbFile.txt"
+#define dbFileDir   "dbFile.txt"
 
 
 void sockets::server::DataBaseManager::dbInit()
