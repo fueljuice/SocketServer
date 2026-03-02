@@ -51,9 +51,8 @@ public:
         std::cout << "Register To Start The Chat... Please Enter UserName:" << std::endl;
         std::string username;
         std::cin >> username;
-        client->sendToServer(username, "", messaging::RequestType::REGISTER);
-        client->sendToServer("", "", messaging::RequestType::GET_CHAT);
-        client->sendToServer(username, "", messaging::RequestType::REGISTER);
+        client->sendToServer(username, messaging::RequestType::REGISTER);
+        client->sendToServer("", messaging::RequestType::GET_CHAT);
 
         //std::cout << "response:" << client->recieveResponse() << std::endl;
         std::cout << std::endl;
