@@ -104,40 +104,6 @@ void sockets::server::RequestHandler::handleSendMessage(SOCKET sock, const messa
 	broadcastHelper(msg);
 }
 
-bool sockets::server::RequestHandler::isStatusOK(
-	bool isRegistered,
-	const messaging::ParsedRequest& req)
-{
-	DBG(static_cast<int>(req.requestType) << ", " << req.dataSize << ", "
-		<< req.dataBuffer << ", " << isRegistered);
-
-	const bool hasPayload = (req.dataSize > 0 && !req.dataBuffer.empty());
-
-	if (isRegistered) 
-	{
-		switch (req.requestType)
-		{
-		case messaging::RequestType::GET_CHAT:
-			return req.dataSize == 0;
-
-		case messaging::RequestType::SEND_MESSAGE:
-			return hasPayload;
-
-		case messaging::RequestType::DIRECT_MESSAGE:
-			// Ideally also require req.recver has value (parsed properly)
-			return hasPayload && req.recver.has_value();
-
-		default:
-			return false;
-		}
-	}
-
-	// not registered
-	if (req.requestType == messaging::RequestType::REGISTER)
-		return hasPayload;
-
-	throw NotRegisteredError("not registered");
-}
 bool sockets::server::RequestHandler::handleRegister(SOCKET sock, const messaging::ParsedRequest& parsedRq)
 {
 	// check if registration is valid
@@ -184,4 +150,39 @@ void sockets::server::RequestHandler::broadcastHelper(std::string_view msg)
 		if(reg.isClientExist(s))
 			netIO.sendAll(s, payload);
 	}
+}
+
+bool sockets::server::RequestHandler::isStatusOK(
+	bool isRegistered,
+	const messaging::ParsedRequest& req)
+{
+	DBG(static_cast<int>(req.requestType) << ", " << req.dataSize << ", "
+		<< req.dataBuffer << ", " << isRegistered);
+
+	const bool hasPayload = (req.dataSize > 0 && !req.dataBuffer.empty());
+
+	if (isRegistered)
+	{
+		switch (req.requestType)
+		{
+		case messaging::RequestType::GET_CHAT:
+			return req.dataSize == 0;
+
+		case messaging::RequestType::SEND_MESSAGE:
+			return hasPayload;
+
+		case messaging::RequestType::DIRECT_MESSAGE:
+			// Ideally also require req.recver has value (parsed properly)
+			return hasPayload && req.recver.has_value();
+
+		default:
+			return false;
+		}
+	}
+
+	// not registered
+	if (req.requestType == messaging::RequestType::REGISTER)
+		return hasPayload;
+
+	throw NotRegisteredError("not registered");
 }

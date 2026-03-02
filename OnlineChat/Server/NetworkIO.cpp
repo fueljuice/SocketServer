@@ -9,6 +9,8 @@ bool sockets::server::NetworkIO::sendAll(SOCKET s, std::string_view payload)
 	DBG("sending: ");
     std::lock_guard<std::mutex> lk(sendMutex);
     const std::size_t len = payload.size();
+    DBG("payloadlen: " << len);
+
     int sent = 0, r;
 
     while (sent < len)

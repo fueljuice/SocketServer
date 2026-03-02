@@ -73,7 +73,7 @@ bool Client::PassiveListener::checkForMessages()
     {
 
         DBG("found msg");
-        auto resp = reader.readResponse();
+        const auto resp = reader.readResponse();
         if (!resp)
             throw InvalidResponseException("passive reader got a bad response from server");
         gui.logScreen(resp->first, resp->second);

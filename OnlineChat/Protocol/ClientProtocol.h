@@ -26,7 +26,7 @@ namespace messaging
 		static std::string constructData(std::string_view msg, std::string_view recver);
 
 		static void extractLength(ParsedResponse& prsdRqst, std::string_view rawHeader);
-		static ResponseCode extractResponseCode(ParsedResponse& prsdRqst, std::string_view rawHeader);
+		static void extractResponseCode(ParsedResponse& prsdRqst, std::string_view rawHeader);
 	};
 
 }

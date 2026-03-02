@@ -8,28 +8,31 @@
 
 
 
-std::string messaging::ServerProtocol::constructResponseHeader(ResponseCode code)
+std::string messaging::ServerProtocol::constructResponseHeader(ResponseCode code, size_t dataLen)
 {
-	char formattedLength[messaging::RESPONSE_DATA_LENGTH_SIZE + 1] = { 0 };
+	char headerBuf[messaging::RESPONSE_HEADER_SIZE + 1] = { 0 };
+
 	sprintf_s(
-		formattedLength,
-		static_cast<int>(sizeof(formattedLength)),
-		"%0*d%0*d",
-		static_cast<int>(messaging::RESPONSE_DATA_LENGTH_SIZE),
-		0,
-		static_cast<int>(code));
-	DBG("formatted length: " << formattedLength);
-	return std::string(formattedLength, messaging::RESPONSE_DATA_LENGTH_SIZE);
+		headerBuf,
+		static_cast<int>(sizeof(headerBuf)),
+		"%0*u%0*u",
+		static_cast<unsigned>(messaging::RESPONSE_DATA_LENGTH_SIZE),
+		static_cast<unsigned>(dataLen),
+		static_cast<unsigned>(messaging::RESPONSE_CODE_SIZE),
+		static_cast<unsigned>(code)
+	);
+
+	return std::string(headerBuf, messaging::RESPONSE_HEADER_SIZE);
 }
 
 std::string messaging::ServerProtocol::constructResponse(std::string_view payload, ResponseCode code)
 {
-	return constructResponseHeader(code) + payload.data();
+	return constructResponseHeader(code, payload.size()) + std::string(payload);
 }
 
 std::string messaging::ServerProtocol::constructResponse(ResponseCode code)
 {
-	return constructResponseHeader(code);
+	return constructResponseHeader(code, 0);
 }
 
 

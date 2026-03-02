@@ -4,8 +4,8 @@ void GuiManager::logScreen(std::string msg, messaging::ResponseCode code)
 {
     auto errMsg = messageForCode(code);
     if (errMsg)
-        std::cout << *errMsg << std::endl;
-    std::cout << msg << std::endl;
+        std::cout << "[Error]:" << *errMsg << std::endl;
+    std::cout << "[New]... " + msg << std::endl;
 }
 
 std::optional<std::string> GuiManager::messageForCode(messaging::ResponseCode code)
@@ -27,7 +27,7 @@ std::optional<std::string> GuiManager::messageForCode(messaging::ResponseCode co
         return "You must register first. Use /reg <username>.";
 
     case RC::USER_NOT_FOUND_ERR:
-        return "sser not found.";
+        return "user not found.";
 
     case RC::DATABASE_ERR:
         return "server database error. Please try again later.";

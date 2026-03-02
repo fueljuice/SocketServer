@@ -12,18 +12,20 @@ std::optional<messaging::ParsedResponse> messaging::ClientProtocol::parseHeader(
 	std::string_view rawHeader,
 	size_t rawLength)
 {
+	DBG("rawlength:" << rawLength);
 	ParsedResponse prsdRqst;
 	// header must be the correct length
 	if (rawLength != RESPONSE_HEADER_SIZE)
 		return std::nullopt;
 
+	DBG("rawlength ok");
 	// extract and validate length
 	extractLength(prsdRqst, rawHeader);
 	if (prsdRqst.dataSize < 0 || prsdRqst.dataSize > MAX_MESSAGE_LENGTH)
 		return std::nullopt;
-	extractLength(prsdRqst, rawHeader);
-
+	DBG("extracting responseCode...");
 	// extract and validate response code
+	extractResponseCode(prsdRqst, rawHeader);
 	if (prsdRqst.responseCode == ResponseCode::NO_RESPONSE)
 		return std::nullopt;
 
@@ -36,7 +38,7 @@ std::optional <messaging::ParsedResponse> messaging::ClientProtocol::parseData(
 {
 	DBG("parsing data");
 
-	if (prsdRqst.dataSize <= 0)
+	if (prsdRqst.dataSize == 0)
 		return std::nullopt;
 
 	prsdRqst.dataBuffer.reserve(prsdRqst.dataSize);
@@ -88,14 +90,14 @@ std::string messaging::ClientProtocol::constructData(std::string_view msg, std::
 	return std::string(msg);
 }
 
-void messaging::ClientProtocol::extractLength(ParsedResponse& pr, std::string_view rawHeader)
+void messaging::ClientProtocol::extractLength(ParsedResponse& prsdRqst, std::string_view rawHeader)
 {
 	int intLength;
 	char* endptr;
 
 	// make a buffer the size of the length field in the header
-	char cRawHeader[REQUEST_DATA_LENGTH_SIZE + 1] = { 0 };
-	memcpy(cRawHeader, rawHeader.data() + RESPONSE_DATA_LENGTH_OFFSET, REQUEST_DATA_LENGTH_SIZE);
+	char cRawHeader[RESPONSE_HEADER_SIZE + 1] = { 0 };
+	memcpy(cRawHeader, rawHeader.data() + RESPONSE_DATA_LENGTH_OFFSET, RESPONSE_DATA_LENGTH_SIZE);
 	DBG("raw header length field: " << cRawHeader);
 
 	// convert the length field to an integer
@@ -106,19 +108,22 @@ void messaging::ClientProtocol::extractLength(ParsedResponse& pr, std::string_vi
 	if (cRawHeader == endptr)
 	{
 		DBG("failed extract length from header ");
-		pr.dataSize = -1;
+		prsdRqst.dataSize = -1;
 		return;
 	}
 
 	// sucsessful extraction
-	pr.dataSize = intLength;
+	prsdRqst.dataSize = intLength;
 	DBG("sucsess length extraction :" << intLength);
 }
 
-messaging::ResponseCode messaging::ClientProtocol::extractResponseCode(ParsedResponse& prsdRqst, std::string_view rawHeader)
+void messaging::ClientProtocol::extractResponseCode(
+	ParsedResponse& prsdRqst,
+	std::string_view rawHeader)
 {
-	return static_cast<ResponseCode>(rawHeader[RESPONSE_CODE_OFFSET]);
+	char codeBuf[messaging::RESPONSE_CODE_SIZE + 1] = { 0 };
+	memcpy(codeBuf, rawHeader.data() + messaging::RESPONSE_CODE_OFFSET, messaging::RESPONSE_CODE_SIZE);
+	prsdRqst.responseCode = static_cast<ResponseCode>(atoi(codeBuf));
 }
-
 
 

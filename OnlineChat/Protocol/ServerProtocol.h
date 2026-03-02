@@ -37,7 +37,7 @@ private:
 
 	static bool isHeaderOK(const ParsedRequest& pr);
 
-	static std::string constructResponseHeader(ResponseCode code);
+	static std::string constructResponseHeader(ResponseCode code, size_t dataLen);
 
 
 
