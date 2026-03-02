@@ -29,7 +29,6 @@ struct IClient
     virtual void sendToServer(std::string_view msg, std::string_view rcver, messaging::RequestType action) = 0;
     virtual void sendToServer(std::string_view msg, messaging::RequestType action) = 0;
 
-    //virtual void registerToServer(std::string_view msg, std::string_view publicKey, messaging::RequestType action) = 0;
 };
 class UserClient : public IClient
 {
@@ -40,9 +39,8 @@ public:
     void startClient() override;
     void stopClient() override;
 
-    void sendToServer(std::string_view msg, std::string_view rcver, messaging::RequestType action) override;
-    void sendToServer(std::string_view msg, messaging::RequestType action) override;
-    //void registerToServer(std::string_view msg, std::string_view publicKey, messaging::RequestType action) override;
+    void sendToServer(std::string_view msg, std::string_view rcver, messaging::RequestType rqstType) override;
+    void sendToServer(std::string_view msg, messaging::RequestType rqstType) override;
 
 
 private:

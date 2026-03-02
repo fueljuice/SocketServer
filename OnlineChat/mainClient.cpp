@@ -46,96 +46,79 @@ public:
 
         const char* name = "userName";
 
-        try
+
+        // simple menu loop for sending requests
+        std::cout << "Register To Start The Chat... Please Enter UserName:" << std::endl;
+        std::string username;
+        std::cin >> username;
+        client->sendToServer(username, "", messaging::RequestType::REGISTER);
+        client->sendToServer("", "", messaging::RequestType::GET_CHAT);
+        client->sendToServer(username, "", messaging::RequestType::REGISTER);
+
+        //std::cout << "response:" << client->recieveResponse() << std::endl;
+        std::cout << std::endl;
+        std::cout << "Choose Request Type:" << std::endl;
+        std::cout << "  (/msg <message>) Send Message:" << std::endl;
+        std::cout << "  (/dm <message> <recver username>) Direct Message: " << std::endl;
+        std::cout << "  q) quit" << std::endl;
+        while (true)
         {
-            // simple menu loop for sending requests
-            std::cout << "Register To Start The Chat... Please Enter UserName:" << std::endl;
-            std::string username;
-            std::cin >> username;
-            client->sendToServer(username, "", messaging::RequestType::REGISTER);
-            client->sendToServer("", "", messaging::RequestType::GET_CHAT);
-            //std::cout << "response:" << client->recieveResponse() << std::endl;
-            std::cout << std::endl;
-            std::cout << "Choose Request Type:" << std::endl;
-            std::cout << "  (/msg <message>) Send Message:" << std::endl;
-            std::cout << "  (/dm <message> <recver username>) Direct Message: " << std::endl;
-            std::cout << "  q) quit" << std::endl;
-            while (true)
+
+            std::string choice = "";
+            if (!(std::cin >> choice))
+            {
+                std::cerr << "input error, exiting" << std::endl;
+                return -1;
+            }
+
+            if (choice == "q")
+            {
+                std::cout << "goodbye" << std::endl;
+                break;
+            }
+
+            try
             {
 
-                std::string choice = "";
-                if (!(std::cin >> choice))
+                if (choice == "/msg")
                 {
-                    std::cerr << "input error, exiting" << std::endl;
-                    return -1;
+                    std::string msg;
+                    std::cin >> msg;
+                    if (msg.empty())
+                        std::cout << "msg empty cant send" << std::endl;
+                    client->sendToServer(msg, "", messaging::RequestType::SEND_MESSAGE);
                 }
-
-                if (choice == "q")
+                else if (choice == "/dm")
                 {
-                    std::cout << "goodbye" << std::endl;
-                    break;
-                }
-
-                try
-                {
-
-                    if (choice == "/msg")
+                    std::string msg;
+                    std::cin >> msg;
+                    std::string recver;
+                    std::cin >> recver;
+                    if (username.empty() || recver.empty())
                     {
-                        std::string msg;
-                        std::cin >> msg;
-                        if (msg.empty())
-                            std::cout << "msg empty cant send" << std::endl;
-                        client->sendToServer(msg, "", messaging::RequestType::SEND_MESSAGE);
+                        std::cout << "username or recver is empty, registration cancelled" << std::endl;
                     }
-                    else if (choice == "/dm")
-                    {
-                        std::string msg;
-                        std::cin >> msg;
-                        std::string recver;
-                        std::cin >> recver;
-                        if (username.empty() || recver.empty())
-                        {
-                            std::cout << "username or recver is empty, registration cancelled" << std::endl;
-                        }
-                        std::cout << "sending msg to user: " << recver << "..." << std::endl;
-                        client->sendToServer(msg, recver, messaging::RequestType::DIRECT_MESSAGE);
-                    }
-                    else
-                        std::cout << "invalid option, choose 0, 1 or 2" << std::endl;
+                    std::cout << "sending msg to user: " << recver << "..." << std::endl;
+                    client->sendToServer(msg, recver, messaging::RequestType::DIRECT_MESSAGE);
+                }
+                else
+                    std::cout << "invalid option, choose 0, 1 or 2" << std::endl;
 
 
-                }
-                catch (const Client::ConnectionException& e)
-                {
-                    std::cerr << "Connection error: " << e.what() << std::endl;
-                    std::cerr << "Please check if the server is running and try again." << std::endl;
-                    return 1;
-                }
+            }
+            catch (const Client::ConnectionException& e)
+            {
+                std::cerr << "Connection error: " << e.what() << std::endl;
+                std::cerr << "Please check if the server is running and try again." << std::endl;
+                return 1;
+            }
 
-                catch (const Client::ProtocolException& e)
-                {
-                    std::cerr << "Protocol error: " << e.what() << std::endl;
-                    std::cerr << "The server may be using an incompatible protocol." << std::endl;
-                }
-                catch (const Client::DataCorruptionException& e)
-                {
-                    std::cerr << "Data corruption error: " << e.what() << std::endl;
-                    std::cerr << "Please try the request again." << std::endl;
-                }
-                catch (const Client::ClientException& e)
-                {
-                    std::cerr << "Client error: " << e.what() << std::endl;
-                    std::cerr << "An unexpected error occurred. Please try again." << std::endl;
-                }
+            catch (const Client::ClientException& e)
+            {
+                std::cerr << "Client error: " << e.what() << std::endl;
+                std::cerr << "An unexpected error occurred. Please try again." << std::endl;
             }
         }
-        catch (const std::exception& e)
-        {
-            std::cerr << "Unexpected error: " << e.what() << std::endl;
-            return 1;
-        }
-        std::cout << "shutting down client..." << std::endl;
-        return 0;
     }
 };
 

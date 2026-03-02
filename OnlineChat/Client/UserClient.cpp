@@ -42,19 +42,10 @@ void Client::UserClient::sendToServer(std::string_view msg, std::string_view rcv
 	rqstSender->sendRequest(msg, rcver, rqstType);
 }
 
-void Client::UserClient::sendToServer(std::string_view msg, messaging::RequestType action)
+void Client::UserClient::sendToServer(std::string_view msg, messaging::RequestType rqstType)
 {
+	rqstSender->sendRequest(msg, "", rqstType);
 }
 
-//void Client::UserClient::registerToServer(
-//	std::string_view msg, 
-//	std::string_view publicKey,
-//	std::string_view privateKey, 
-//	messaging::RequestType action)
-//{
-//	rqstSender->sendRequest(publicKey);
-//	std::string keyAES = rsaDecrypt(respReader->readResponse(), privateKey)
-//}
-//
 
 
