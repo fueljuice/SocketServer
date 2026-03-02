@@ -8,27 +8,33 @@
 
 
 
-std::string messaging::ServerProtocol::constructResponseHeader(size_t len)
+std::string messaging::ServerProtocol::constructResponseHeader(ResponseCode code)
 {
 	char formattedLength[messaging::RESPONSE_DATA_LENGTH_SIZE + 1] = { 0 };
 	sprintf_s(
 		formattedLength,
 		static_cast<int>(sizeof(formattedLength)),
-		"%0*d",
+		"%0*d%0*d",
 		static_cast<int>(messaging::RESPONSE_DATA_LENGTH_SIZE),
-		static_cast<int>(len)); // formatting
+		0,
+		static_cast<int>(code));
 	DBG("formatted length: " << formattedLength);
 	return std::string(formattedLength, messaging::RESPONSE_DATA_LENGTH_SIZE);
 }
 
-std::string messaging::ServerProtocol::constructResponse(std::string payload)
+std::string messaging::ServerProtocol::constructResponse(std::string_view payload, ResponseCode code)
 {
-	return constructResponseHeader(payload.size()) + payload;
+	return constructResponseHeader(code) + payload.data();
+}
+
+std::string messaging::ServerProtocol::constructResponse(ResponseCode code)
+{
+	return constructResponseHeader(code);
 }
 
 
 // extracts header
-std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseHeader(std::string rawHeader, size_t rawLength)
+std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseHeader(std::string_view rawHeader, size_t rawLength)
 {
 	DBG("parsing header");
 	ParsedRequest pr;
@@ -39,9 +45,9 @@ std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseHeader(s
 		return std::nullopt;
 
 	// extractions
-	extractLength(pr, rawHeader.c_str());
-	extractRequestType(pr, rawHeader.c_str());
-	extractProtocolVersion(pr, rawHeader.c_str());
+	extractLength(pr, rawHeader.data());
+	extractRequestType(pr, rawHeader.data());
+	extractProtocolVersion(pr, rawHeader.data());
 
 	// validates header
 	if(!isHeaderOK(pr))
@@ -59,55 +65,30 @@ std::optional<messaging::ParsedRequest> messaging::ServerProtocol::parseData(Par
 		return std::nullopt;
 
 	// handle direct message
-	if (parsedRqst.requestType == ActionType::DIRECT_MESSAGE)
+	if (parsedRqst.requestType == RequestType::DIRECT_MESSAGE)
 	{
-		parseDirectMessage(parsedRqst, rawData);
+		extractDirectMessage(parsedRqst, rawData);
 		if (!parsedRqst.recver)
 			return std::nullopt;
 	}
 
 	// handle other types
-	else if(parsedRqst.requestType != ActionType::INVALID)
+	else if(parsedRqst.requestType != RequestType::INVALID)
 		extractData(parsedRqst, rawData.c_str());
 
 	return parsedRqst;
 }
 
-bool messaging::ServerProtocol::isStatusOK(const ParsedRequest& pr, bool isRegistered)
-{
-	// must have valid protocol version
-	if (pr.protocolVersion != PROTOCOL_VERSION)
-	{
-		DBG("INVALID PROTOCOL VERSION: " << pr.protocolVersion);
-		return false;
-	}
-	DBG("protocol version OK");
-	DBG(static_cast<int>(pr.requestType) << ", " << pr.dataSize << ", " << pr.dataBuffer << ", " << isRegistered);
-	// GET_CHAT
-	if (pr.requestType == ActionType::GET_CHAT && pr.dataSize == 0) return true;// && isRegistered) return true; RETURN. ONLY FOR TESTING
-
-	// SEND_MESSAGE
-	else if (pr.requestType == ActionType::SEND_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
-
-	// REGISTER
-	else if (pr.requestType == ActionType::REGISTER && pr.dataSize > 0 && !pr.dataBuffer.empty() && !isRegistered) return true;
-
-	// DIRECT MESSAGE
-	else if (pr.requestType == ActionType::DIRECT_MESSAGE && pr.dataSize > 0 && !pr.dataBuffer.empty() && isRegistered) return true;
-
-	return false;
-}
-
 bool messaging::ServerProtocol::isHeaderOK(const ParsedRequest& pr)
 {
-	return (pr.dataSize > -1 && pr.requestType != ActionType::INVALID && pr.protocolVersion == PROTOCOL_VERSION);
+	return (pr.dataSize > -1 && pr.requestType != RequestType::INVALID && pr.protocolVersion == PROTOCOL_VERSION);
 }
 
-void messaging::ServerProtocol::parseDirectMessage(ParsedRequest& pr, std::string_view dmData)
+void messaging::ServerProtocol::extractDirectMessage(ParsedRequest& pr, std::string_view dmData)
 {
 	DBG("parsing direct message data: " << dmData);
 	// search for data seperator
-	std::size_t seperatorPos = dmData.find(messaging::REQUEST_DATA_SEPERATOR);
+	const std::size_t seperatorPos = dmData.find(messaging::REQUEST_DATA_SEPERATOR);
 	if (seperatorPos == std::string::npos || seperatorPos >= dmData.size() -1)
 	{
 		// no seperator
@@ -155,17 +136,17 @@ void messaging::ServerProtocol::extractRequestType(ParsedRequest& pr, const char
 {
 	constexpr unsigned int reqTypeOffset = messaging::REQUEST_TYPE_OFFSET;
 	DBG("EXTRACTING REQUEST TYPE..");
-	ActionType reqType;
+	RequestType reqType;
 	char reqTypeChar[messaging::REQUEST_TYPE_SIZE + 1] = {0};
 	
 	// memcopies and atoi
 	memcpy(reqTypeChar, rawHeader + reqTypeOffset, messaging::REQUEST_TYPE_SIZE);
-	reqType = static_cast<ActionType>(atoi(reqTypeChar));
+	reqType = static_cast<RequestType>(atoi(reqTypeChar));
 
 	if (static_cast<int>(reqType) == 0)
 	{
 		DBG("couldnt convert char length to int" );
-		pr.requestType = ActionType::INVALID;
+		pr.requestType = RequestType::INVALID;
 	}
 	else
 	{

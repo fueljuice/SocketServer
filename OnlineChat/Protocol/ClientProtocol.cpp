@@ -21,6 +21,11 @@ std::optional<messaging::ParsedResponse> messaging::ClientProtocol::parseHeader(
 	extractLength(prsdRqst, rawHeader);
 	if (prsdRqst.dataSize < 0 || prsdRqst.dataSize > MAX_MESSAGE_LENGTH)
 		return std::nullopt;
+	extractLength(prsdRqst, rawHeader);
+
+	// extract and validate response code
+	if (prsdRqst.responseCode == ResponseCode::NO_RESPONSE)
+		return std::nullopt;
 
 	return prsdRqst;
 }
@@ -43,7 +48,7 @@ std::optional <messaging::ParsedResponse> messaging::ClientProtocol::parseData(
 std::string messaging::ClientProtocol::constructRequest(
 	std::string_view msg,
 	std::string_view recver,
-	ActionType requestType)
+	RequestType requestType)
 {
 	// calculate total payload size
 	std::string data = constructData(msg, recver);
@@ -51,7 +56,7 @@ std::string messaging::ClientProtocol::constructRequest(
 	return header + data;
 }
 
-std::string messaging::ClientProtocol::constructHeader(size_t msgLength, ActionType requestType)
+std::string messaging::ClientProtocol::constructHeader(size_t msgLength, RequestType requestType)
 {
 	// check for msg length
 	if (msgLength > MAX_MESSAGE_LENGTH)
@@ -108,6 +113,11 @@ void messaging::ClientProtocol::extractLength(ParsedResponse& pr, std::string_vi
 	// sucsessful extraction
 	pr.dataSize = intLength;
 	DBG("sucsess length extraction :" << intLength);
+}
+
+messaging::ResponseCode messaging::ClientProtocol::extractResponseCode(ParsedResponse& prsdRqst, std::string_view rawHeader)
+{
+	return static_cast<ResponseCode>(rawHeader[RESPONSE_CODE_OFFSET]);
 }
 
 

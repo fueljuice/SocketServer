@@ -11,7 +11,7 @@ struct ParsedRequest
 	std::optional<std::string> recver;
 	std::string dataBuffer;
 	int dataSize;
-	ActionType requestType;
+	RequestType requestType;
 	int protocolVersion;
 
 	ParsedRequest();

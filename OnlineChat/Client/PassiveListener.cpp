@@ -6,12 +6,12 @@
 #define DBG(X)
 #endif
 
-Client::PassiveListener::PassiveListener(ResponseReader& responseReader_p, INetworkManager& net_p)
+Client::PassiveListener::PassiveListener(IResponseReader& responseReader_p, INetworkManager& net_p, IGuiManager& gui_p)
     :
     reader(responseReader_p),
-    net(net_p)
-{
-}
+    net(net_p),
+    gui(gui_p)
+    {}
 
 void Client::PassiveListener::startPassiveListener()
 {
@@ -76,7 +76,7 @@ bool Client::PassiveListener::checkForMessages()
         auto resp = reader.readResponse();
         if (!resp)
             throw InvalidResponseException("passive reader got a bad response from server");
-        std::cout << "[NEW MESSAGE]: " << *resp << std::endl;
+        gui.logScreen(resp->first, resp->second);
         return true;
     }
     return false;

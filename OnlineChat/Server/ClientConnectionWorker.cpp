@@ -38,7 +38,8 @@ void sockets::server::ClientConnectionWorker::run(SOCKET sock)
 
 void sockets::server::ClientConnectionWorker::removeDeadClient(SOCKET sock)
 {
-    // remove session and from registry
+    // remove session and from registry. send abort msg
+    net.sendAll(sock, messaging::ServerProtocol::constructResponse(messaging::ResponseCode::ABORTED_ERR));
     sessions.removeClient(sock);
     registry.eraseClient(sock);
 }

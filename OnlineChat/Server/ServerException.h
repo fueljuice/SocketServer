@@ -29,10 +29,10 @@ public:
 };
 
 /// thrown for network send/recv/accept failures.
-class NetworkError final : public ServerError 
+class RegistryError final : public ServerError 
 {
 public:
-    explicit NetworkError(std::string message)
+    explicit RegistryError(std::string message)
         : ServerError(std::move(message)) {}
 };
 
@@ -45,18 +45,16 @@ public:
 };
 
 /// thrown when user registry/state invariants are violated.
-class RegistryError final : public ServerError 
+class NotRegisteredError final : public ServerError 
 {
 public:
-    explicit RegistryError(std::string message)
+    explicit NotRegisteredError(std::string message)
         : ServerError(std::move(message)) {}
 };
-
-/// thrown for thread/lifecycle problems.
-class LifecycleError final : public ServerError 
+class UserNotFoundError final : public ServerError 
 {
 public:
-    explicit LifecycleError(std::string message)
+    explicit UserNotFoundError(std::string message)
         : ServerError(std::move(message)) {}
 };
 

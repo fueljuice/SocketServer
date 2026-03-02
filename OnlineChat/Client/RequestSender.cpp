@@ -11,7 +11,7 @@ Client::RequestSender::RequestSender(INetworkManager& net_p)
 {
 }
 
-void Client::RequestSender::sendRequest(std::string_view msg, std::string_view recver, messaging::ActionType requestType)
+void Client::RequestSender::sendRequest(std::string_view msg, std::string_view recver, messaging::RequestType requestType)
 {
     // construct request
     std::string payload = buildRequest(msg, recver, requestType);
@@ -23,7 +23,7 @@ void Client::RequestSender::sendRequest(std::string_view msg, std::string_view r
     DBG("sent to server:");
 }
 
-std::string Client::RequestSender::buildRequest(std::string_view msg, std::string_view recver, messaging::ActionType requestType)
+std::string Client::RequestSender::buildRequest(std::string_view msg, std::string_view recver, messaging::RequestType requestType)
 {
     // construct request
     const size_t msgLength = msg.size() + recver.size();

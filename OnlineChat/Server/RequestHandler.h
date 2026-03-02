@@ -17,12 +17,13 @@
 
 #include "../Protocol/ParsedRequest.h"
 #include "../Protocol/ServerProtocol.h"
+ 
 namespace sockets::server
 {
 struct IRequestHandler
 {
 public:
-	virtual void handleRequest(SOCKET sock, messaging::ParsedRequest& parsdRqst) = 0;
+	virtual void handleRequest(SOCKET sock, const messaging::ParsedRequest& parsdRqst) = 0;
 };
 class RequestHandler : public IRequestHandler
 {
@@ -33,7 +34,7 @@ public:
 		IdbManager& dbManager_p,
 		ISessionManager& sesManager);
 
-	void handleRequest(SOCKET sock, messaging::ParsedRequest& parsdRqst);
+	void handleRequest(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
 
 
 private:
@@ -42,11 +43,11 @@ private:
 	IdbManager& dbManager;
 	ISessionManager& sessionManager;
 	void handleGetChat(SOCKET sock);
-	void handleSendMessage(SOCKET sock, messaging::ParsedRequest& parsdRqst);
-	void handleDirectMessage(SOCKET sock, messaging::ParsedRequest& parsdRqst);
-	bool handleRegister(SOCKET sock, messaging::ParsedRequest& parsdRqst);
-
-	void broadcastHelper(std::string msg);
+	void handleSendMessage(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
+	void handleDirectMessage(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
+	bool handleRegister(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
+	bool isStatusOK(bool isRegistered, const messaging::ParsedRequest& parsdRqst);
+	void broadcastHelper(std::string_view msg);
 
 };
 }

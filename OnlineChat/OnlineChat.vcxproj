@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Client\GuiManager.cpp" />
     <ClCompile Include="Client\NetworkManager.cpp" />
     <ClCompile Include="Client\PassiveListener.cpp" />
     <ClCompile Include="Client\RequestSender.cpp" />
@@ -158,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\ClientExceptions.h" />
+    <ClInclude Include="Client\GuiManager.h" />
     <ClInclude Include="Client\UserClient.h" />
     <ClInclude Include="Client\NetworkManager.h" />
     <ClInclude Include="Client\PassiveListener.h" />

@@ -21,7 +21,7 @@ public:
 	// TODO: ADD STATUS CODE IN THE RESPONSE
 	bool sendAll(SOCKET sock, std::string_view payload);
 	std::optional<std::string> recvAll(SOCKET sock, size_t size);
-	bool sendError(SOCKET sock, int statusCode);
+	// bool sendError(SOCKET sock, int statusCode);
 
 private:
 	std::mutex sendMutex;

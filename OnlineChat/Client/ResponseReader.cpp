@@ -8,15 +8,15 @@
 
 using optPrsdResp = std::optional<messaging::ParsedResponse>;
 using optStr = std::optional<std::string>;
+using StrAndCodePair = std::optional<std::pair<std::string, messaging::ResponseCode>>;
 
 Client::ResponseReader::ResponseReader(INetworkManager& net_p)
     : net(net_p)
-{
-}
+    {}
 
 
 
-optStr Client::ResponseReader::readResponse()
+StrAndCodePair Client::ResponseReader::readResponse()
 {
     // recving from server the header for the length
     DBG("recving header");
@@ -30,7 +30,7 @@ optStr Client::ResponseReader::readResponse()
 
     // dont recv data if it isnt expcted.
     if (prsdRqst->dataSize == 0)
-        return "";
+        return std::pair( "", prsdRqst->responseCode);
 
     // recving data
     DBG("recving data from server...");
@@ -44,5 +44,5 @@ optStr Client::ResponseReader::readResponse()
     if (!refindPrsdRqst)
         return std::nullopt;
 
-    return refindPrsdRqst->dataBuffer;
+    return std::pair(refindPrsdRqst->dataBuffer, refindPrsdRqst->responseCode);
 }

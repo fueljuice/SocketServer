@@ -13,19 +13,20 @@
 namespace messaging
 {
 
-class ClientProtocol
-{
+	class ClientProtocol
+	{
 
-public:
-	static std::optional<ParsedResponse> parseHeader(std::string_view rawHeader,size_t rawLength);
-	static std::optional<ParsedResponse> parseData(ParsedResponse&& pr, std::string rawData);
-	static std::string constructRequest(std::string_view msg, std::string_view recver, ActionType requestType);
+	public:
+		static std::optional<ParsedResponse> parseHeader(std::string_view rawHeader, size_t rawLength);
+		static std::optional<ParsedResponse> parseData(ParsedResponse&& prsdRqst, std::string rawData);
+		static std::string constructRequest(std::string_view msg, std::string_view recver, RequestType requestType);
 
-private:
-	static std::string constructHeader(size_t msgLength, ActionType requestType);
-	static std::string constructData(std::string_view msg, std::string_view recver);
-	// extarcts length of data	
-	static void extractLength(ParsedResponse& pr, std::string_view rawHeader);
-};
+	private:
+		static std::string constructHeader(size_t msgLength, RequestType requestType);
+		static std::string constructData(std::string_view msg, std::string_view recver);
+
+		static void extractLength(ParsedResponse& prsdRqst, std::string_view rawHeader);
+		static ResponseCode extractResponseCode(ParsedResponse& prsdRqst, std::string_view rawHeader);
+	};
 
 }

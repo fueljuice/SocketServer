@@ -8,6 +8,7 @@
 
 #include "NetworkManager.h"
 #include "ResponseReader.h"
+#include "GuiManager.h"
 #include "ClientExceptions.h"
 namespace Client
 {
@@ -22,14 +23,15 @@ struct IPassiveListener
 class PassiveListener : public IPassiveListener
 {
 public:
-    PassiveListener(ResponseReader& responseReader, INetworkManager& net);
+    PassiveListener(IResponseReader& responseReader, INetworkManager& net, IGuiManager& gui);
     void startPassiveListener();
     void stopPassiveListener();
     bool isListening();
 
 private:
-    ResponseReader& reader;
+    IResponseReader& reader;
     INetworkManager& net;
+    IGuiManager& gui;
     std::atomic<bool> shouldListen;
     std::thread listenerThread;
     void passiveListenLoop();
