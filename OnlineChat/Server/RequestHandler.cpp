@@ -176,7 +176,7 @@ bool sockets::server::RequestHandler::isStatusOK(
 			return hasPayload && req.recver.has_value();
 
 		default:
-			return false;
+			throw RegistryError("registry error");
 		}
 	}
 

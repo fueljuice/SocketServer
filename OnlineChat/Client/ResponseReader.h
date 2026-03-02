@@ -19,7 +19,7 @@ class ResponseReader : public IResponseReader
 public:
     ResponseReader(INetworkManager& net);
     std::optional<std::pair<std::string, messaging::ResponseCode>> readResponse() override;
-    
+
 private:
     INetworkManager& net;
 };

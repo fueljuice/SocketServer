@@ -4,8 +4,8 @@ void GuiManager::logScreen(std::string msg, messaging::ResponseCode code)
 {
     auto errMsg = messageForCode(code);
     if (errMsg)
-        std::cout << "[Error]:" << *errMsg << std::endl;
-    std::cout << "[New]... " + msg << std::endl;
+        std::cout << "\n[Error]:\n" << *errMsg << std::endl;
+    std::cout << "\n[New]: \n" + msg << std::endl;
 }
 
 std::optional<std::string> GuiManager::messageForCode(messaging::ResponseCode code)
@@ -34,6 +34,9 @@ std::optional<std::string> GuiManager::messageForCode(messaging::ResponseCode co
 
     case RC::PROTOCOL_ERR:
         return "server failed to process the request. maybe outdated client version?";
+
+    case RC::REGISTRY_ERR:
+        return "registration error. username alreay exists";
 
     default:
         return "Unknown error.";
