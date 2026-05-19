@@ -45,9 +45,6 @@
     <ClCompile Include="Protocol\ParsedRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mainClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Client\NetworkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -84,9 +81,6 @@
     <ClCompile Include="Server\RequestReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Server\ServerBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Server\SessionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -94,6 +88,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Client\GuiManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Security\OpenSSLWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Security\RSAWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Security\AESWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Client\ResponseHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -158,9 +164,6 @@
     <ClInclude Include="Server\RequestReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Server\ServerBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Server\ServerException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -183,6 +186,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Client\GuiManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Security\OpenSSLWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Security\RSAWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Security\AESWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Client\ResponseHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

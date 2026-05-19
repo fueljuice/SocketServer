@@ -57,5 +57,18 @@ public:
     explicit UserNotFoundError(std::string message)
         : ServerError(std::move(message)) {}
 };
-
+class AESSessionKeyError final : public ServerError
+{
+public:
+    explicit AESSessionKeyError(std::string message)
+        : ServerError(std::move(message)) {
+    }
+};
+class RSAWrapperError final : public ServerError
+{
+public:
+    explicit RSAWrapperError(std::string message)
+        : ServerError(std::move(message)) {
+    }
+};
 }  

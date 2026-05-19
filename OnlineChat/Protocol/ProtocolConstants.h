@@ -39,7 +39,8 @@ namespace messaging
         GET_CHAT = 1,
         SEND_MESSAGE = 2,
         REGISTER = 3,
-        DIRECT_MESSAGE = 4
+        DIRECT_MESSAGE = 4,
+        SEND_RSA_PKEY = 5
     };
 
     enum class ResponseCode : int
@@ -51,6 +52,9 @@ namespace messaging
         USER_NOT_FOUND_ERR = 3,
         DATABASE_ERR = 4,
         PROTOCOL_ERR = 5,
-        REGISTRY_ERR = 6
+        REGISTRY_ERR = 6,
+
+        AESKEY = 10,
+        AESKEY_ERR = 11
     };
 }

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <optional>
 
+#include "ResponseHandler.h"
 #include "NetworkManager.h"
 #include "ResponseReader.h"
 #include "GuiManager.h"
@@ -23,15 +24,16 @@ struct IPassiveListener
 class PassiveListener : public IPassiveListener
 {
 public:
-    PassiveListener(IResponseReader& responseReader, INetworkManager& net, IGuiManager& gui);
+    PassiveListener(IResponseReader& responseReader, INetworkManager& net, IResponseHandler& handler);
     void startPassiveListener();
     void stopPassiveListener();
     bool isListening();
 
 private:
+	constexpr static std::chrono::milliseconds CHECK_INTERVAL{ 100 };
     IResponseReader& reader;
     INetworkManager& net;
-    IGuiManager& gui;
+    IResponseHandler& handler;
     std::atomic<bool> shouldListen;
     std::thread listenerThread;
     void passiveListenLoop();

@@ -20,5 +20,6 @@ struct ClientSocketData
 	struct sockaddr clientAddr;
 	std::string dataBuf; 
 	std::string headerBuf;
+	std::string AESkey;
 };
 }

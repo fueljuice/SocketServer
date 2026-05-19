@@ -15,6 +15,9 @@
 #include "DataBaseManager.h"
 #include "SessionManager.h"
 
+
+#include "../Security/RSAWrapper.h"
+#include "../Security/AESWrapper.h"
 #include "../Protocol/ParsedRequest.h"
 #include "../Protocol/ServerProtocol.h"
  
@@ -45,8 +48,9 @@ private:
 	void handleGetChat(SOCKET sock);
 	void handleSendMessage(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
 	void handleDirectMessage(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
-	bool handleRegister(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
-	bool isStatusOK(bool isRegistered, const messaging::ParsedRequest& parsdRqst);
+	void handleRegister(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
+	void handleRSAKey(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
+	bool isRequestAllowed(bool isRegistered, bool isEncrypted, const messaging::ParsedRequest& parsdRqst);
 	void broadcastHelper(std::string_view msg);
 
 };

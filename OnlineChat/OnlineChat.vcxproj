@@ -105,10 +105,13 @@
       <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\OpenSSL-Win64\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libssl.lib;libcrypto.lib;Ws2_32.lib;Crypt32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,15 +132,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Client\ResponseHandler.cpp" />
+    <ClCompile Include="Security\AESWrapper.cpp" />
     <ClCompile Include="Client\GuiManager.cpp" />
     <ClCompile Include="Client\NetworkManager.cpp" />
     <ClCompile Include="Client\PassiveListener.cpp" />
     <ClCompile Include="Client\RequestSender.cpp" />
     <ClCompile Include="Client\ResponseReader.cpp" />
+    <ClCompile Include="Security\RSAWrapper.cpp" />
+    <ClCompile Include="Security\OpenSSLWrapper.cpp" />
     <ClCompile Include="Server\ClientConnectionWorker.cpp" />
     <ClCompile Include="Server\ClientThreadManager.cpp" />
     <ClCompile Include="Server\DataBaseManager.cpp" />
-    <ClCompile Include="mainClient.cpp" />
     <ClCompile Include="Protocol\ParsedResponse.cpp" />
     <ClCompile Include="Protocol\ClientProtocol.cpp" />
     <ClCompile Include="Server\NetworkIO.cpp" />
@@ -149,7 +155,6 @@
     <ClCompile Include="Server\AbstractServer.cpp" />
     <ClCompile Include="Server\RequestHandler.cpp" />
     <ClCompile Include="Server\RequestReader.cpp" />
-    <ClCompile Include="Server\ServerBuilder.cpp" />
     <ClCompile Include="Server\Server.cpp" />
     <ClCompile Include="Server\SessionManager.cpp" />
     <ClCompile Include="Sockets\ConnectingSocket.cpp" />
@@ -158,6 +163,8 @@
     <ClCompile Include="Server\UserRegistry.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Client\ResponseHandler.h" />
+    <ClInclude Include="Security\AESWrapper.h" />
     <ClInclude Include="Client\ClientExceptions.h" />
     <ClInclude Include="Client\GuiManager.h" />
     <ClInclude Include="Client\UserClient.h" />
@@ -165,12 +172,13 @@
     <ClInclude Include="Client\PassiveListener.h" />
     <ClInclude Include="Client\RequestSender.h" />
     <ClInclude Include="Client\ResponseReader.h" />
+    <ClInclude Include="Security\RSAWrapper.h" />
+    <ClInclude Include="Security\OpenSSLWrapper.h" />
     <ClInclude Include="Server\ClientConnectionWorker.h" />
     <ClInclude Include="Server\ClientThreadManager.h" />
     <ClInclude Include="Server\RequestHandler.h" />
     <ClInclude Include="Server\RequestReader.h" />
     <ClInclude Include="Server\Server.h" />
-    <ClInclude Include="Server\ServerBuilder.h" />
     <ClInclude Include="Server\ServerException.h" />
     <ClInclude Include="Server\DataBaseManager.h" />
     <ClInclude Include="Protocol\ParsedResponse.h" />

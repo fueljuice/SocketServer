@@ -19,7 +19,7 @@ class ServerProtocol
 {
 public:
 
-
+	static std::string generateAES();
 	static std::string constructResponse(std::string_view payload, ResponseCode code);
 	static std::string constructResponse(ResponseCode code);
 

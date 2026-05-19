@@ -11,11 +11,14 @@
 
 Client::UserClient::UserClient(int domain, int service, int protocol, int port, u_long network_interface)
 	:
+	rsa(std::make_unique<RSAWrapper>()),
+	aes(std::make_unique<AESWrapper>()), 
 	gui(std::make_unique<GuiManager>()),
 	net(std::make_unique<NetworkManager>(domain, service, protocol, port, network_interface)),
 	respReader(std::make_unique<ResponseReader>(*net)),
+	handler(std::make_unique<ResponseHandler>(*aes, *rsa, *gui)),
 	rqstSender(std::make_unique<RequestSender>(*net)),
-	passiveListener(std::make_unique<PassiveListener>(*respReader, *net, *gui))
+	passiveListener(std::make_unique<PassiveListener>(*respReader, *net, *handler))
 {
 	DBG("UserClient ctor called. ");
 }
@@ -45,6 +48,17 @@ void Client::UserClient::sendToServer(std::string_view msg, std::string_view rcv
 void Client::UserClient::sendToServer(std::string_view msg, messaging::RequestType rqstType)
 {
 	rqstSender->sendRequest(msg, "", rqstType);
+}
+
+bool Client::UserClient::sendPublicKey()
+{
+	if (!rsa->generateRSAKeyPair())
+		return false;
+	std::string rsaStr = rsa->getPublicKey();
+	if (rsaStr.empty())
+		return false;
+	rqstSender->sendRequest(rsaStr, "", messaging::RequestType::SEND_RSA_PKEY);
+	return true;
 }
 
 

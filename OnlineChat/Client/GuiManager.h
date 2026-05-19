@@ -8,15 +8,13 @@ struct IGuiManager
 {
 public:
 	virtual ~IGuiManager() = default;
-	virtual void logScreen(std::string msg, messaging::ResponseCode code) = 0;
+	virtual void logScreen(std::string_view msg, std::string_view errMsg) = 0;
 };
 
 class GuiManager : public IGuiManager
 {
 public:
-	void logScreen(std::string msg, messaging::ResponseCode code);
+	void logScreen(std::string_view msg, std::string_view errMsg);
 
-private:
-	std::optional<std::string> messageForCode(messaging::ResponseCode code);
 };
 

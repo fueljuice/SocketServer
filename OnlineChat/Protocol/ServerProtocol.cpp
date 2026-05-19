@@ -25,6 +25,11 @@ std::string messaging::ServerProtocol::constructResponseHeader(ResponseCode code
 	return std::string(headerBuf, messaging::RESPONSE_HEADER_SIZE);
 }
 
+std::string messaging::ServerProtocol::generateAES()
+{
+	return "abc";
+}
+
 std::string messaging::ServerProtocol::constructResponse(std::string_view payload, ResponseCode code)
 {
 	return constructResponseHeader(code, payload.size()) + std::string(payload);

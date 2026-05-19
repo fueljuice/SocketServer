@@ -22,10 +22,15 @@ struct ISessionManager
 
 	virtual std::vector<SOCKET> clientsSnapshot() const = 0;
 
+
 	virtual bool setClientHeader(SOCKET s, std::string_view buf) = 0;
 	virtual bool setClientData(SOCKET s, std::string_view buf) = 0;
+	virtual bool setAESkey(SOCKET s, std::string_view key) = 0;
+
 	virtual std::string getClientHeader(SOCKET s) const = 0;
 	virtual std::string getClientData(SOCKET s) const = 0;
+	virtual std::string getAESkey(SOCKET s) const = 0;
+
 };
 class SessionManager : public ISessionManager
 {
@@ -37,12 +42,15 @@ public:
 	// getters
 	std::string getClientHeader(SOCKET s) const override;
 	std::string getClientData(SOCKET s) const override;
-	std::vector<SOCKET> clientsSnapshot() const override;
+	std::string getAESkey(SOCKET s) const override;
 
 	// setters
 	bool setClientHeader(SOCKET s, std::string_view buf) override;
 	bool setClientData(SOCKET s, std::string_view buf) override;
+	bool setAESkey(SOCKET s, std::string_view key) override;
 
+	// takes a snapshot of all the current clients in the session, used for brodcasting to all clients
+	std::vector<SOCKET> clientsSnapshot() const override;
 private:
 	mutable std::mutex clientsMetaDataMutex;
 	std::unordered_map<SOCKET, std::unique_ptr<data::ClientSocketData>> clientsMetaData;

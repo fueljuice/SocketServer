@@ -6,11 +6,11 @@
 #define DBG(X)
 #endif
 
-Client::PassiveListener::PassiveListener(IResponseReader& responseReader_p, INetworkManager& net_p, IGuiManager& gui_p)
+Client::PassiveListener::PassiveListener(IResponseReader& responseReader_p, INetworkManager& net_p, IResponseHandler& gui_p)
     :
     reader(responseReader_p),
     net(net_p),
-    gui(gui_p)
+    handler(gui_p)
     {}
 
 void Client::PassiveListener::startPassiveListener()
@@ -39,12 +39,13 @@ void Client::PassiveListener::passiveListenLoop()
 {
     try
     {
+		// loop until stop signal is given, check for messages every CHECK_INTERVAL
         while (shouldListen.load())
         {
             if (checkForMessages())
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::this_thread::sleep_for(CHECK_INTERVAL);
             else
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::this_thread::sleep_for(CHECK_INTERVAL);
         }
     }
     catch (const Client::ClientException& e)
@@ -65,18 +66,18 @@ bool Client::PassiveListener::checkForMessages()
     FD_ZERO(&readSet);
     FD_SET(sock, &readSet);
     timeval timeout{ 1, 0 };
-
+    // check if packet found synchnusly using select
     int result = select(0, &readSet, nullptr, nullptr, &timeout);
     if (result <= 0) return false;
     DBG("select:" << result);
     if (FD_ISSET(sock, &readSet))
     {
-
+		// packet found. read it and route it to the handler
         DBG("found msg");
         const auto resp = reader.readResponse();
         if (!resp)
             throw InvalidResponseException("passive reader got a bad response from server");
-        gui.logScreen(resp->first, resp->second);
+        handler.handleResponse(resp->first, resp->second);
         return true;
     }
     return false;

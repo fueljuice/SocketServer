@@ -36,6 +36,15 @@ std::string sockets::server::SessionManager::getClientData(SOCKET s) const
     return "";
 }
 
+std::string sockets::server::SessionManager::getAESkey(SOCKET s) const
+{
+    std::lock_guard<std::mutex> lk(clientsMetaDataMutex);
+    auto it = clientsMetaData.find(s);
+    if (it != clientsMetaData.end())
+        return it->second->AESkey;
+    return "";
+}
+
 std::vector<SOCKET> sockets::server::SessionManager::clientsSnapshot() const
 {
     std::lock_guard<std::mutex> lk(clientsMetaDataMutex);
@@ -55,6 +64,20 @@ bool sockets::server::SessionManager::setClientData(SOCKET s, std::string_view b
         return false;
 
     it->second->dataBuf = buf;
+    return true;
+}
+
+bool sockets::server::SessionManager::setAESkey(SOCKET s, std::string_view key)
+{
+    std::lock_guard<std::mutex> lk(clientsMetaDataMutex);
+    auto it = clientsMetaData.find(s);
+    if (it == clientsMetaData.end())
+        return false;
+
+	if (it->second->AESkey != "")
+		return false; // AES key already set for this client, do not overwrite
+
+    it->second->AESkey = key;
     return true;
 }
 
