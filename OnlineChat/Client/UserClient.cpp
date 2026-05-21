@@ -17,7 +17,7 @@ Client::UserClient::UserClient(int domain, int service, int protocol, int port, 
 	net(std::make_unique<NetworkManager>(domain, service, protocol, port, network_interface)),
 	respReader(std::make_unique<ResponseReader>(*net)),
 	handler(std::make_unique<ResponseHandler>(*aes, *rsa, *gui)),
-	rqstSender(std::make_unique<RequestSender>(*net)),
+	rqstSender(std::make_unique<RequestSender>(*net, *aes)),
 	passiveListener(std::make_unique<PassiveListener>(*respReader, *net, *handler))
 {
 	DBG("UserClient ctor called. ");
@@ -54,10 +54,10 @@ bool Client::UserClient::sendPublicKey()
 {
 	if (!rsa->generateRSAKeyPair())
 		return false;
-	std::string rsaStr = rsa->getPublicKey();
-	if (rsaStr.empty())
+	auto rsaStr = rsa->getPublicKey();
+	if (!rsaStr)
 		return false;
-	rqstSender->sendRequest(rsaStr, "", messaging::RequestType::SEND_RSA_PKEY);
+	rqstSender->sendRequest(rsaStr.value(), "", messaging::RequestType::SEND_RSA_PKEY);
 	return true;
 }
 

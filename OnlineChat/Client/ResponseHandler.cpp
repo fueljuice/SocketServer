@@ -23,8 +23,10 @@ void ResponseHandler::handleResponse(std::string_view data, messaging::ResponseC
 		gui.logScreen("", messageForCode(messaging::ResponseCode::AESKEY));
         return;
     }
-	std::string decrypted = aes.decrypt(data);
-    gui.logScreen(data, messageForCode(code));
+	auto decrypted = aes.decrypt(data);
+    if (!decrypted)
+        return;
+    gui.logScreen(decrypted.value(), messageForCode(code));
 }
 
 std::string ResponseHandler::messageForCode(messaging::ResponseCode code)
@@ -71,11 +73,11 @@ bool ResponseHandler::handleAESKeyResponse(std::string_view data)
     if (data.empty())
         return false;
 
-    std::string aesKey = rsa.decrypt(data);
+    const auto aesKey = rsa.decrypt(data);
 
-    if (aesKey.empty())
+    if (!aesKey)
         return false;
 
-    aes.setKey(aesKey);
+    aes.setKey(aesKey.value());
     return true;
 }

@@ -24,6 +24,8 @@ class RSAWrapper : public IRSAWrapper
 
 public:
 	constexpr static int DEFAULT_KEY_BIT_LENGTH = 2048;
+	RSAWrapper() = default;
+
 	RSAWrapper(const RSAWrapper&) = delete;
 	RSAWrapper& operator=(const RSAWrapper&) = delete;
 	~RSAWrapper();

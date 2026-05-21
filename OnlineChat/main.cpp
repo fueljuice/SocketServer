@@ -51,13 +51,13 @@ public:
         std::string username;
         std::cin >> username;
         client->sendPublicKey();
-        client->sendToServer(username, messaging::RequestType::REGISTER);
-        client->sendToServer("", messaging::RequestType::GET_CHAT);
 
         std::cout << std::endl;
         std::cout << "Choose Request Type:" << std::endl;
+        std::cout << "  (/reg <username>) register:" << std::endl;
         std::cout << "  (/msg <message>) Send Message:" << std::endl;
         std::cout << "  (/dm <message> <recver username>) Direct Message: " << std::endl;
+        std::cout << "  (/help) for help: " << std::endl;
         std::cout << "  q) quit" << std::endl;
         while (true)
         {
@@ -104,7 +104,18 @@ public:
                     std::string username;
                     std::cin >> username;
                     client->sendToServer(username, messaging::RequestType::REGISTER);
+                    client->sendToServer("", messaging::RequestType::GET_CHAT);
+
                 }
+				else if (choice == "/help")
+				{
+					std::cout << "Choose Request Type:" << std::endl;
+					std::cout << "  (/reg <username>) register:" << std::endl;
+					std::cout << "  (/msg <message>) Send Message:" << std::endl;
+					std::cout << "  (/dm <message> <recver username>) Direct Message: " << std::endl;
+					std::cout << "  (/help) for help: " << std::endl;
+					std::cout << "  q) quit" << std::endl;
+				}
                 else
                     std::cout << "invalid option" << std::endl;
 
