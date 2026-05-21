@@ -1,6 +1,6 @@
 #include "AESWrapper.h"
 
-std::string AESWrapper::decryptWithPrivateKey(std::string_view ciphertext, std::string_view key)
+std::optional<std::string> AESWrapper::decryptWithKey(std::string_view ciphertext, std::string_view key)
 {
 
     if (key.size() != AES_KEY_SIZE || ciphertext.size() < AES_IV_SIZE) 
@@ -77,14 +77,14 @@ std::optional<std::string> AESWrapper::generateAESKey()
     return key;
 }
 
-std::string AESWrapper::encrypt(std::string_view plainText) const
+std::optional<std::string>  AESWrapper::encrypt(std::string_view plainText) const
 {
-    return encryptWithPublicKey(plainText, key_);
+    return encryptWithKey(plainText, key_);
 }
 
-std::string AESWrapper::decrypt(std::string_view cipherText) const
+std::optional<std::string>  AESWrapper::decrypt(std::string_view cipherText) const
 {
-    return decryptWithPrivateKey(cipherText, key_);
+    return decryptWithKey(cipherText, key_);
 }
 
 void AESWrapper::setKey(std::string key)
@@ -92,10 +92,15 @@ void AESWrapper::setKey(std::string key)
 	key_ = std::move(key);
 }
 
-std::string AESWrapper::encryptWithPublicKey(std::string_view plaintext, std::string_view key)
+bool AESWrapper::hasKey() const
+{
+	return !key_.empty();
+}
+
+std::optional<std::string>  AESWrapper::encryptWithKey(std::string_view plaintext, std::string_view key)
 {
     if (key.size() != AES_KEY_SIZE)
-        return {};
+        return {}; 
 
     std::string result;
     result.resize(AES_IV_SIZE + plaintext.size() + EVP_MAX_BLOCK_LENGTH);

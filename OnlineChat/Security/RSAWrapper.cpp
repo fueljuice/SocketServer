@@ -33,17 +33,17 @@ bool RSAWrapper::generateRSAKeyPair()
 }
 
 
-std::string RSAWrapper::encrypt(std::string_view plainText) const
+std::optional <std::string> RSAWrapper::encrypt(std::string_view plainText) const
 {
-    if (!pkey || plainText.empty()) return "";
+    if (!pkey || plainText.empty()) return std::nullopt;
     EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new(pkey, nullptr);
-    if (!ctx) return "";
+    if (!ctx) return std::nullopt;
 
     // init for encryption
     if (EVP_PKEY_encrypt_init(ctx) <= 0 ||
         EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
         EVP_PKEY_CTX_free(ctx);
-        return "";
+        return std::nullopt;
     }
 
 	// checks the size of the output buffer needed for encryption
@@ -52,7 +52,7 @@ std::string RSAWrapper::encrypt(std::string_view plainText) const
     if (EVP_PKEY_encrypt(ctx, nullptr, &out_len, in_data, plainText.size()) <= 0) 
     {
         EVP_PKEY_CTX_free(ctx);
-        return "";
+        return std::nullopt;
     }
 
     // actual encryption
@@ -61,7 +61,7 @@ std::string RSAWrapper::encrypt(std::string_view plainText) const
     if (EVP_PKEY_encrypt(ctx, out_data, &out_len, in_data, plainText.size()) <= 0) 
     {
         EVP_PKEY_CTX_free(ctx);
-        return "";
+        return std::nullopt;
     }
 
     ciphertext.resize(out_len);
@@ -69,22 +69,22 @@ std::string RSAWrapper::encrypt(std::string_view plainText) const
     return ciphertext;
 }
 
-std::string RSAWrapper::encryptWithPublicKey(std::string_view plainText, std::string_view publicKey)
+std::optional <std::string> RSAWrapper::encryptWithPublicKey(std::string_view plainText, std::string_view publicKey)
 {
-    if (publicKey.empty() || plainText.empty()) return "";
+    if (publicKey.empty() || plainText.empty()) return std::nullopt;
 
     // create a local evp
     BIO* bio = BIO_new_mem_buf(publicKey.data(), static_cast<int>(publicKey.size()));
-    if (!bio) return "";
+    if (!bio) return std::nullopt;
     EVP_PKEY* local_pub_key = PEM_read_bio_PUBKEY(bio, nullptr, nullptr, nullptr);
     BIO_free(bio);
 
-    if (!local_pub_key) return "";
+    if (!local_pub_key) return std::nullopt;
 
     EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new(local_pub_key, nullptr);
     if (!ctx) {
         EVP_PKEY_free(local_pub_key);
-        return "";
+        return std::nullopt;
     }
 
     // init padding
@@ -92,7 +92,7 @@ std::string RSAWrapper::encryptWithPublicKey(std::string_view plainText, std::st
         EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
         EVP_PKEY_CTX_free(ctx);
         EVP_PKEY_free(local_pub_key);
-        return "";
+        return std::nullopt;
     }
 
     // check length
@@ -102,7 +102,7 @@ std::string RSAWrapper::encryptWithPublicKey(std::string_view plainText, std::st
     if (EVP_PKEY_encrypt(ctx, nullptr, &out_len, in_data, plainText.size()) <= 0) {
         EVP_PKEY_CTX_free(ctx);
         EVP_PKEY_free(local_pub_key);
-        return "";
+        return std::nullopt;
     }
 
 	// get ciphertext
@@ -111,7 +111,7 @@ std::string RSAWrapper::encryptWithPublicKey(std::string_view plainText, std::st
     if (EVP_PKEY_encrypt(ctx, out_data, &out_len, in_data, plainText.size()) <= 0) {
         EVP_PKEY_CTX_free(ctx);
         EVP_PKEY_free(local_pub_key);
-        return "";
+        return std::nullopt;
     }
 
     ciphertext.resize(out_len);
@@ -121,7 +121,7 @@ std::string RSAWrapper::encryptWithPublicKey(std::string_view plainText, std::st
     return ciphertext;
 }
 
-std::string RSAWrapper::decryptWithPrivateKey(std::string_view cipherText, std::string_view privateKey)
+std::optional <std::string> RSAWrapper::decryptWithPrivateKey(std::string_view cipherText, std::string_view privateKey)
 {
     // currently uneeded
     throw std::logic_error("decryptWithPrivateKey is not implemented");
@@ -130,18 +130,18 @@ std::string RSAWrapper::decryptWithPrivateKey(std::string_view cipherText, std::
 
 
 
-std::string RSAWrapper::decrypt(std::string_view cipherText) const
+std::optional <std::string> RSAWrapper::decrypt(std::string_view cipherText) const
 {
-    if (!pkey || cipherText.empty()) return "";
+    if (!pkey || cipherText.empty()) return std::nullopt;
 
     EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new(pkey, nullptr);
-    if (!ctx) return "";
+    if (!ctx) return std::nullopt;
 
     // match padding
     if (EVP_PKEY_decrypt_init(ctx) <= 0 ||
         EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
         EVP_PKEY_CTX_free(ctx);
-        return "";
+        return std::nullopt;
     }
 
     size_t out_len = 0;
@@ -150,7 +150,7 @@ std::string RSAWrapper::decrypt(std::string_view cipherText) const
     // determine size of output
     if (EVP_PKEY_decrypt(ctx, nullptr, &out_len, in_data, cipherText.size()) <= 0) {
         EVP_PKEY_CTX_free(ctx);
-        return "";
+        return std::nullopt;
     }
 
     std::string plainText(out_len, '\0');
@@ -159,7 +159,7 @@ std::string RSAWrapper::decrypt(std::string_view cipherText) const
     // actual decrytion
     if (EVP_PKEY_decrypt(ctx, out_data, &out_len, in_data, cipherText.size()) <= 0) {
         EVP_PKEY_CTX_free(ctx);
-        return "";
+        return std::nullopt;
     }
     plainText.resize(out_len);
     EVP_PKEY_CTX_free(ctx);
@@ -167,19 +167,19 @@ std::string RSAWrapper::decrypt(std::string_view cipherText) const
     return plainText;
 }
 
-std::string RSAWrapper::getPublicKey()
+std::optional <std::string> RSAWrapper::getPublicKey()
 {
     if (!pkey)
-        return "";
+        return std::nullopt;
 
     BIO* bio = BIO_new(BIO_s_mem());
     if (!bio)
-        return "";
+        return std::nullopt;
 
     if (PEM_write_bio_PUBKEY(bio, pkey) != 1)
     {
         BIO_free(bio);
-        return "";
+        return std::nullopt;
     }
 
     BUF_MEM* buffer = nullptr;
@@ -188,7 +188,7 @@ std::string RSAWrapper::getPublicKey()
     if (!buffer || !buffer->data || buffer->length == 0)
     {
         BIO_free(bio);
-        return "";
+        return std::nullopt;
     }
 
     std::string publicKey(buffer->data, buffer->length);

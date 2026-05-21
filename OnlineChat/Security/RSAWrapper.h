@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <string_view>
 #include <stdexcept>
@@ -13,8 +14,8 @@ public:
 	virtual ~IRSAWrapper() = default;
 
 	virtual bool generateRSAKeyPair() = 0;
-	virtual std::string encrypt(std::string_view plainText) const = 0;
-	virtual std::string decrypt(std::string_view cipherText) const = 0;
+	virtual std::optional <std::string> encrypt(std::string_view plainText) const = 0;
+	virtual std::optional <std::string> decrypt(std::string_view cipherText) const = 0;
 };
 
 // container for RSA key pair and encryption/decryption methods
@@ -32,14 +33,15 @@ public:
 	bool generateRSAKeyPair() override;
 
 	// decryption and encryption
-	std::string encrypt(std::string_view plainText) const override;
-	std::string decrypt(std::string_view cipherText) const override;
+	std::optional<std::string> encrypt(std::string_view plainText) const override;
+	std::optional <std::string> decrypt(std::string_view cipherText) const override;
+
 	// getter for the pubkey
-	std::string getPublicKey();
+	std::optional <std::string> getPublicKey();
 
 	// static encryptio and decryption
-	static std::string encryptWithPublicKey(std::string_view plainText, std::string_view publicKey);
-	static std::string decryptWithPrivateKey(std::string_view cipherText, std::string_view privateKey);
+	static std::optional <std::string> encryptWithPublicKey(std::string_view plainText, std::string_view publicKey);
+	static std::optional <std::string> decryptWithPrivateKey(std::string_view cipherText, std::string_view privateKey);
 
 private:
 	// holds key pair

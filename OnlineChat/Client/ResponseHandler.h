@@ -12,7 +12,7 @@
 class IResponseHandler
 {
 public:
-    virtual ~IResponseHandlerr() = default;
+    virtual ~IResponseHandler() = default;
 
     virtual void handleResponse(
         std::string_view data,

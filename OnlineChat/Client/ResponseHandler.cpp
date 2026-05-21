@@ -12,11 +12,18 @@ ResponseHandler::ResponseHandler(IAESWrapper& aes, IRSAWrapper& rsa, IGuiManager
 
 void ResponseHandler::handleResponse(std::string_view data, messaging::ResponseCode code)
 {
+    // case aes key
 	if (code == messaging::ResponseCode::AESKEY)
     {
         if(!handleAESKeyResponse(data))
-			gui.logScreen(data, messageForCode(messaging::ResponseCode::AESKEY_ERR));
+        {
+            gui.logScreen("", messageForCode(messaging::ResponseCode::AESKEY_ERR));
+            return;
+        }
+		gui.logScreen("", messageForCode(messaging::ResponseCode::AESKEY));
+        return;
     }
+	std::string decrypted = aes.decrypt(data);
     gui.logScreen(data, messageForCode(code));
 }
 
@@ -61,8 +68,14 @@ std::string ResponseHandler::messageForCode(messaging::ResponseCode code)
 bool ResponseHandler::handleAESKeyResponse(std::string_view data)
 {
 	// sets the AES key by decrypting the received data with the RSA private key
-	std::string aesKey = RSAWrapper::decryptWithPrivateKey(data, rsa.decrypt(data));
-    if (aesKey.empty() || data.empty())
+    if (data.empty())
         return false;
-	aes.setKey(aesKey);
+
+    std::string aesKey = rsa.decrypt(data);
+
+    if (aesKey.empty())
+        return false;
+
+    aes.setKey(aesKey);
+    return true;
 }

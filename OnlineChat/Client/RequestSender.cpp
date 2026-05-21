@@ -6,13 +6,25 @@
 #define DBG(X)
 #endif
 
-Client::RequestSender::RequestSender(INetworkManager& net_p)
-    : net(net_p)
+
+Client::RequestSender::RequestSender(INetworkManager& net_p, IAESWrapper& aes_p)
+    :
+    net(net_p),
+    aes(aes_p)
 {
 }
 
 void Client::RequestSender::sendRequest(std::string_view msg, std::string_view recver, messaging::RequestType requestType)
 {
+	// if key was initialized, encrypt the message before sending
+    if(aes.hasKey())
+    {
+        auto decryptedMsg = aes.encrypt(msg);
+        if (!decryptedMsg)
+            throw ClientException("encryption failed");
+
+        msg = std::move(decryptedMsg.value());
+    }
     // construct request
     std::string payload = buildRequest(msg, recver, requestType);
 

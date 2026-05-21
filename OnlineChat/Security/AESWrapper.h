@@ -13,10 +13,11 @@ class IAESWrapper
 public:
     virtual ~IAESWrapper() = default;
 
-    virtual std::string encrypt(std::string_view plainText) const = 0;
-    virtual std::string decrypt(std::string_view cipherText) const = 0;
+    virtual std::optional<std::string> encrypt(std::string_view plainText) const = 0;
+    virtual std::optional<std::string> decrypt(std::string_view cipherText) const = 0;
 
     virtual void setKey(std::string key) = 0;
+	virtual bool hasKey() const = 0;
 };
 
 
@@ -40,15 +41,16 @@ public:
     static std::optional<std::string> generateAESKey();
 
     // IAESWrapper implementation
-    std::string encrypt(std::string_view plainText) const override;
-    std::string decrypt(std::string_view cipherText) const override;
+    std::optional<std::string>  encrypt(std::string_view plainText) const override;
+    std::optional<std::string>  decrypt(std::string_view cipherText) const override;
 
-    // set the key after construction
+    // setter for the key after construction
     void setKey(std::string key) override;
 
+    virtual bool hasKey() const override;
     // decrypt and encrypt without constructing the class
-    static std::string encryptWithPublicKey(std::string_view plainText, std::string_view publicKey);
-    static std::string decryptWithPrivateKey(std::string_view cipherText, std::string_view privateKey);
+    static std::optional<std::string>  encryptWithKey(std::string_view plainText, std::string_view publicKey);
+    static std::optional<std::string>  decryptWithKey(std::string_view cipherText, std::string_view privateKey);
 
 private:
     std::string key_;

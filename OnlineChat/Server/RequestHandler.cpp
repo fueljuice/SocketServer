@@ -48,35 +48,35 @@ void sockets::server::RequestHandler::handleRequest(SOCKET sock, const messaging
 		// database error
 		DBG("DataBase error: " << e.what());
 		const std::string payload = messaging::ServerProtocol::constructResponse(Code::DATABASE_ERR);
-		netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+		netIO.sendAll(sock, payload);
 	}
 	catch (const ProtocolError& e)
 	{
 		// protocol error
 		DBG("protocol error: " << e.what());
 		const std::string payload = messaging::ServerProtocol::constructResponse(Code::PROTOCOL_ERR);
-		netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+		netIO.sendAll(sock, payload);
 	}
 	catch (const UserNotFoundError& e)
 	{
 		// user not found err
 		DBG("error handling request: " << e.what());
 		const std::string payload = messaging::ServerProtocol::constructResponse(Code::USER_NOT_FOUND_ERR);
-		netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+		netIO.sendAll(sock, payload);
 	}
 	catch (const NotRegisteredError& e)
 	{
 		// trying to request without being rergistreed
 		DBG("error handling request: " << e.what());
 		std::string payload = messaging::ServerProtocol::constructResponse(Code::NOT_REGISTER_ERR);
-		netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+		netIO.sendAll(sock, payload);
 	}
 	catch (const RegistryError& e)
 	{
 		// errors that might occur from the registry
 		DBG("error handling request: " << e.what());
 		const std::string payload = messaging::ServerProtocol::constructResponse(Code::REGISTRY_ERR);
-		netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+		netIO.sendAll(sock, payload);
 	}
 	catch (const AESSessionKeyError& e)
 	{
@@ -90,14 +90,14 @@ void sockets::server::RequestHandler::handleRequest(SOCKET sock, const messaging
 		// the openSSL rsa wrapper failed
 		DBG("error handling request: " << e.what());
 		const std::string payload = messaging::ServerProtocol::constructResponse(Code::AESKEY_ERR);
-		netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+		netIO.sendAll(sock, payload);
 	}
 	catch (const std::exception& e)
 	{
 		// any other exceptions
 		DBG("error handling request: " << e.what());
 		const std::string payload = messaging::ServerProtocol::constructResponse(Code::PROTOCOL_ERR);
-		netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+		netIO.sendAll(sock, payload);
 	}
 }
 
@@ -107,37 +107,48 @@ void sockets::server::RequestHandler::handleGetChat(SOCKET sock)
 	const std::string dbContent = dbManager.readDB();
 	const std::string payload = messaging::ServerProtocol::constructResponse(dbContent, Code::OK);
 	DBG("sending this in getchat:" << payload);
-	netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+	netIO.sendAll(sock, payload);
 }
 
 void sockets::server::RequestHandler::handleSendMessage(SOCKET sock, const messaging::ParsedRequest& parsedRq)
 {
 	DBG("sendMessage request called");
-
+	// decrypts the message with the clients AES key
+	const auto decryptedMsg = AESWrapper::decryptWithKey(parsedRq.dataBuffer, sessionManager.getAESkey(sock));
 	// logs formatted message to the database
-	const std::string msg = reg.getUserName(sock) + ": " + parsedRq.dataBuffer;
-	dbManager.writeToDB(msg);
+	const std::string formattedMsg = reg.getUserName(sock) + ": " + decryptedMsg.value();
+	dbManager.writeToDB(formattedMsg);
 
 	// brodcasts the message
-	broadcastHelper(msg);
+	broadcastHelper(formattedMsg);
 }
 
 void sockets::server::RequestHandler::handleRegister(SOCKET sock, const messaging::ParsedRequest& parsedRq)
 {
-	// check if registration is valid
-	if (!reg.registerUserName(sock, parsedRq.dataBuffer))
+	const auto decryptedUsername = AESWrapper::decryptWithKey(parsedRq.dataBuffer, sessionManager.getAESkey(sock));
+
+	// registering
+	if (!reg.registerUserName(sock, decryptedUsername.value()))
 		throw RegistryError("already registrated / username taken");
 
 	// sends sucsess message
 	DBG("registrartion sucsess");
-	std::string sendToUser = "registration successful as " + reg.getUserName(sock);
-	const std::string payload = messaging::ServerProtocol::constructResponse(sendToUser, Code::OK);
-	netIO.sendAll(sock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+
+	// formatting and ecnrypting 
+	std::string formattedMsg = "registration successful as " + reg.getUserName(sock);
+	const auto encryptedMsg = RSAWrapper::encryptWithPublicKey(formattedMsg, sessionManager.getAESkey(sock));
+	if(!encryptedMsg)
+		throw RSAWrapperError("encryption failed during registration response");
+
+	const std::string payload = messaging::ServerProtocol::constructResponse(encryptedMsg.value(), Code::OK);
+
+	// sending
+	netIO.sendAll(sock, payload);
 }
 
 void sockets::server::RequestHandler::handleRSAKey(SOCKET sock, const messaging::ParsedRequest& parsdRqst)
 {
-	// generates the AES key and caches it in the sesssion manager
+	// generates the AES key and caches it in the sesssion
 
 	// generate the key
 	const auto AESkey = AESWrapper::generateAESKey();
@@ -148,43 +159,58 @@ void sockets::server::RequestHandler::handleRSAKey(SOCKET sock, const messaging:
 		throw AESSessionKeyError("AES key already set for this client, cannot overwrite");
 
 	// encrypts AES key with the clients RSA public key and sends it back to the client
-	std::string encryptedAESkey = RSAWrapper::encryptWithPublicKey(AESkey.value(), parsdRqst.dataBuffer);
-	if (encryptedAESkey.empty())
+	const auto encryptedAESkey = RSAWrapper::encryptWithPublicKey(AESkey.value(), parsdRqst.dataBuffer);
+	if (!encryptedAESkey)
 		throw RSAWrapperError("encryption of AES key failed");
-
-	netIO.sendAll(sock, encryptedAESkey);
+	std::string payload = messaging::ServerProtocol::constructResponse(encryptedAESkey.value(), Code::AESKEY);
+	netIO.sendAll(sock, payload);
 }
 
 void sockets::server::RequestHandler::handleDirectMessage(SOCKET sock, const messaging::ParsedRequest& parsedRq)
 {
+	const auto decryptedMsg = AESWrapper::decryptWithKey(parsedRq.dataBuffer, sessionManager.getAESkey(sock));
+
 	// verify sender is registered
 	const std::string& senderUsername = reg.getUserName(sock);
-	DBG("databuffer" << parsedRq.dataBuffer);
+	DBG("databuffer" << decryptedMsg);
 
 	// verify recver exists
 	if (!parsedRq.recver || reg.getSocket(parsedRq.recver.value()) == INVALID_SOCKET)
 		throw UserNotFoundError("user not found");
 
-	DBG("parsed DM data, target user: " << parsedRq.dataBuffer << ", message content: " << parsedRq.recver.value());
+	DBG("parsed DM data, target user: " << *decryptedMsg << ", message content: " << parsedRq.recver.value());
 
 	// send DM
 	SOCKET targetSock = reg.getSocket(parsedRq.recver.value());
-	const std::string formattedMsg = "(DM from " + senderUsername + "): " + parsedRq.dataBuffer;
-	const std::string payload = messaging::ServerProtocol::constructResponse(formattedMsg, Code::OK);
-	netIO.sendAll(targetSock, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(sock), payload));
+	
+	// formatting and encrypting the message
+	const std::string formattedMsg = "(DM from " + senderUsername + "): " + decryptedMsg.value();
+	const auto encryptedMsg = AESWrapper::encryptWithKey(formattedMsg, sessionManager.getAESkey(sock));
+	if (!encryptedMsg)
+		throw RSAWrapperError("encryption of AES key failed");
+	const std::string payload = messaging::ServerProtocol::constructResponse(encryptedMsg.value(), Code::OK);
 
+	netIO.sendAll(targetSock, payload);
 }
 
 void sockets::server::RequestHandler::broadcastHelper(std::string_view msg)
 {
 	DBG("broadcasting message: " << msg);
-	const std::string payload = messaging::ServerProtocol::constructResponse(msg.data(), Code::OK);
+	// takes a snapshot of all current conncted clients
 	std::vector<SOCKET> clients = sessionManager.clientsSnapshot();
 	// brodcasts to every registered user
 	for(SOCKET s : clients)
 	{	
 		if(reg.isClientExist(s))
-			netIO.sendAll(s, AESWrapper::encryptWithPublicKey(sessionManager.getAESkey(s), payload));
+		{
+			// encrypts the message with the clients AES key before sending
+			const auto encryptedMsg = RSAWrapper::encryptWithPublicKey(msg, sessionManager.getAESkey(s));
+			if(!encryptedMsg)
+				throw RSAWrapperError("encryption of AES key failed during broadcast");
+			const std::string payload = messaging::ServerProtocol::constructResponse(encryptedMsg.value(), Code::OK);
+
+			netIO.sendAll(s, payload);
+		}
 	}
 }
 
