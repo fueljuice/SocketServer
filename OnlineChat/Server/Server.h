@@ -47,6 +47,7 @@ public:
 private:
 	void initWorker(SOCKET sock);
 	std::atomic_bool running;
+	std::thread acceptorThread;
 
 	std::unique_ptr<INetworkIO> net;
 	std::unique_ptr<IUserRegistry> registry;

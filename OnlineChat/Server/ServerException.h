@@ -71,4 +71,11 @@ public:
         : ServerError(std::move(message)) {
     }
 };
+class AlreadyRequested final : public ServerError
+{
+public:
+    explicit AlreadyRequested(std::string message)
+        : ServerError(std::move(message)) {
+    }
+};
 }  

@@ -24,18 +24,27 @@ class ClientManager
 public:
     static std::unique_ptr<Client::UserClient> createClient()
     {
-        std::cout << "starting client..." << std::endl;
-        in_addr addr{};
-        if (InetPtonA(AF_INET, "127.0.0.1", &addr) != 1) {
-            std::cerr << "inetptonA failed" << std::endl;
-            return nullptr;
-        }
-        u_long serverIP = addr.S_un.S_addr;
-        std::cout << "server ip (raw): " << serverIP << std::endl;
-        auto client = std::make_unique<Client::UserClient>(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT, serverIP);
-        client->startClient();
+        try
+        {
+            in_addr addr{};
+            if (InetPtonA(AF_INET, "127.0.0.1", &addr) != 1) {
+                std::cerr << "inetptonA failed" << std::endl;
+                return nullptr;
+            }
+            u_long serverIP = addr.S_un.S_addr;
+            auto client = std::make_unique<Client::UserClient>(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT, serverIP);
+            client->startClient();
+            return client;
 
-        return client;
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "Connection error: " << e.what() << std::endl;
+            std::cerr << "Please check if the server is running and try again." << std::endl;
+            exit(1);
+
+        }
+
     }
 
     static int runClient(std::unique_ptr<Client::UserClient> client)
@@ -50,7 +59,14 @@ public:
         std::cout << "Please Enter UserName:" << std::endl;
         std::string username;
         std::cin >> username;
-        client->sendPublicKey();
+
+        // wait 5 seconds for server response for thet symmerytic key
+        if(!client->sendPublicKey(50))
+			throw Client::ClientException("failed to send public key to server, cannot continue");
+        
+        // automatically register and get the chat log
+        client->registerUser(username);
+        client->getChat();
         printHelp();
         while (true)
         {
@@ -81,7 +97,6 @@ public:
                 else if (choice == "/reg")
                 {
                     client->registerUser(username);
-					client->getChat();
                 }
 				else if (choice == "/help")
 				{
@@ -99,7 +114,6 @@ public:
             {
                 std::cerr << "Connection error: " << e.what() << std::endl;
                 std::cerr << "Please check if the server is running and try again." << std::endl;
-                return 1;
             }
 
             catch (const Client::ClientException& e)
@@ -107,6 +121,7 @@ public:
                 std::cerr << "Client error: " << e.what() << std::endl;
                 std::cerr << "An unexpected error occurred. Please try again." << std::endl;
             }
+
         }
         return 0;
     }
@@ -116,6 +131,7 @@ public:
         std::cout << "  (/reg) register with the username entered at startup" << std::endl;
         std::cout << "  (/msg <message>) Send Message" << std::endl;
         std::cout << "  (/dm <message> <recver username>) Direct Message" << std::endl;
+		std::cout << "  (/get) get chat log" << std::endl;
         std::cout << "  (/help) for help" << std::endl;
         std::cout << "  q) quit" << std::endl;
     }
@@ -172,7 +188,7 @@ int runServer()
     {
         sockets::server::Server server(AF_INET, SOCK_STREAM, IPPROTO_TCP, PORT, INADDR_ANY, SOMAXCONN);
 
-        std::cout << "Starting TestServer on port " << PORT << std::endl;
+        std::cout << "Starting on port " << PORT << std::endl;
 
         server.launch();
 
@@ -181,6 +197,7 @@ int runServer()
         std::cin.get();
 
         server.stop();
+        return 0;
     }
     catch (const std::exception& ex)
     {

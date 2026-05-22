@@ -65,7 +65,7 @@ void sockets::server::Server::launch()
        return;
    }
    running.store(true);
-   acceptConnections();
+   acceptorThread = std::thread(&Server::acceptConnections, this);
 }
 
 // force shuts the server
@@ -74,9 +74,11 @@ void sockets::server::Server::stop()
     DBG("stopped server");
     // stop the server
     running.store(false);
-
-    // closes the socket listener 
-	sessions->endSession();
+    // closes the socket listener and every socket listened to by it
+    sessions->endSession();
+    lstnSocket->stopLisetning();
+    // stop the thread that is accepting new clients
+    acceptorThread.join();
     // joins every current running threads
     clientThreads->joinAll();
     // close handle to db

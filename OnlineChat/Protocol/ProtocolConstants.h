@@ -53,6 +53,7 @@ namespace messaging
         DATABASE_ERR = 4,
         PROTOCOL_ERR = 5,
         REGISTRY_ERR = 6,
+		ALREADY_REQUESTED_ERR = 7,
 
         AESKEY = 10,
         AESKEY_ERR = 11,

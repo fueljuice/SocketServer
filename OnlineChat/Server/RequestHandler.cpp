@@ -32,14 +32,19 @@ void sockets::server::RequestHandler::handleRequest(SOCKET sock, const messaging
 		DBG("STATUS CODE OK");
 		if (messaging::RequestType::GET_CHAT == parsedRq.requestType)
 			RequestHandler::handleGetChat(sock);
+
 		else if (messaging::RequestType::SEND_MESSAGE == parsedRq.requestType)
 			RequestHandler::handleSendMessage(sock, parsedRq);
+
 		else if (messaging::RequestType::REGISTER == parsedRq.requestType)
 			RequestHandler::handleRegister(sock, parsedRq);
+
 		else if (messaging::RequestType::DIRECT_MESSAGE == parsedRq.requestType)
 			RequestHandler::handleDirectMessage(sock, parsedRq);
+
 		else if (messaging::RequestType::SEND_RSA_PKEY == parsedRq.requestType)
 			RequestHandler::handleRSAKey(sock, parsedRq);
+
 		else
 			throw ProtocolError("invalid request type");
 	}
@@ -85,11 +90,19 @@ void sockets::server::RequestHandler::handleRequest(SOCKET sock, const messaging
 		DBG("error handling request: " << e.what());
 		sendResponse(sock, "", Code::RSAKEY_ERR);
 	}
+	catch (const AlreadyRequested& e)
+	{
+		// the client already made this request and cant make it again
+		DBG("error handling request: " << e.what());
+		sendResponse(sock, "", Code::ALREADY_REQUESTED_ERR);
+		return;
+	}
 	catch (const std::exception& e)
 	{
 		// any other exceptions
 		DBG("error handling request: " << e.what());
 		sendResponse(sock, "", Code::PROTOCOL_ERR);
+		return;
 	}
 }
 
@@ -146,6 +159,8 @@ void sockets::server::RequestHandler::handleRegister(SOCKET sock, const messagin
 
 void sockets::server::RequestHandler::handleRSAKey(SOCKET sock, const messaging::ParsedRequest& parsdRqst)
 {
+	DBG("sending rsa key");
+
 	// generate an AES key
 	const auto AESkey = AESWrapper::generateAESKey();
 	if (!AESkey)
@@ -186,9 +201,13 @@ void sockets::server::RequestHandler::handleDirectMessage(SOCKET sock, const mes
 
 	DBG("parsed DM data, target user: " << *decryptedMsg << ", message content: " << parsedRq.recver.value());
 	
-	// formatting and sending the message
-	const std::string formattedMsg = "(DM from " + senderUsername + "): " + decryptedMsg.value();
-	sendResponse(targetSock, formattedMsg, messaging::ResponseCode::OK);
+	// formatting and sending the message to the reciver
+	const std::string messageToReciever = "(DM from " + senderUsername + "): " + decryptedMsg.value();
+	sendResponse(sock, messageToReciever, messaging::ResponseCode::OK);
+
+	// formatting and sending the message to the sender
+	const std::string messageToSender = "(You've sent a DM to " + parsedRq.recver.value() + "): " + decryptedMsg.value();
+	sendResponse(targetSock, messageToSender, messaging::ResponseCode::OK);
 }
 
 void sockets::server::RequestHandler::broadcastHelper(std::string_view msg)
@@ -271,7 +290,7 @@ bool sockets::server::RequestHandler::isRequestAllowed(bool isRegistered, bool i
 			return hasPayload && req.recver.has_value();
 
 		default:
-			throw ProtocolError("request not allowed in current state");
+			throw AlreadyRequested("request not allowed in current state");
 		}
 	}
 

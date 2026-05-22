@@ -62,20 +62,3 @@ void Client::RequestSender::sendRequest(
     sendPayload(encryptedMsg.value());
 }
 
-std::string Client::RequestSender::toHex(std::string_view data)
-{
-
-    static constexpr char hex[] = "0123456789ABCDEF";
-    std::string out;
-    out.reserve(data.size() * 2);
-
-    for (unsigned char c : data)
-    {
-        out.push_back(hex[c >> 4]);
-        out.push_back(hex[c & 0x0F]);
-    }
-
-    return out;
-
-
-}

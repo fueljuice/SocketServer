@@ -19,7 +19,13 @@ sockets::ListeningSocket::ListeningSocket(int domain, int service, int protocol,
 // init the socket server
 void sockets::ListeningSocket::connectToNetwork(SOCKET sock, sockaddr_in address)
 {
-	bindSocket(sock, address);
+	if (bindSocket(sock, address) == SOCKET_ERROR)
+	{
+		perror("failed to bind socket");
+		closesocket(sock);
+		WSACleanup();
+		exit(EXIT_FAILURE);
+	}
 	//testing binding
 	testConnection(getSock());
 	DBG("binded sucsessfuly to port" << getAddress().sin_port);

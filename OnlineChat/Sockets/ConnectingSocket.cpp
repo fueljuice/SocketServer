@@ -47,6 +47,6 @@ void sockets::ConnectingSocket::connectToNetwork(SOCKET sock, struct sockaddr_in
 		<< ntohs(address.sin_port));
 
 	if (connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR)
-		throw std::runtime_error("failed to connect to network");
+		throw std::exception("failed to connect to network");
 
 }

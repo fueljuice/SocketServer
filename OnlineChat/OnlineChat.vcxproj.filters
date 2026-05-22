@@ -90,9 +90,6 @@
     <ClCompile Include="Client\GuiManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Security\OpenSSLWrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Security\RSAWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -189,9 +186,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Client\GuiManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Security\OpenSSLWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Security\RSAWrapper.h">

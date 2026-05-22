@@ -31,7 +31,7 @@ sockets::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int p
 // exits if failed to make a valid socket
 void sockets::SimpleSocket::testConnection(const SOCKET& sock) const
 {
-	if (sock < 0)
+	if (sock == INVALID_SOCKET)
 	{
 		DBG(sock);
 		perror("failed to connect");

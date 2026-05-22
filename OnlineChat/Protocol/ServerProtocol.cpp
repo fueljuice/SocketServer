@@ -10,7 +10,7 @@
 
 std::string messaging::ServerProtocol::constructResponseHeader(ResponseCode code, size_t dataLen)
 {
-
+	DBG("constructing response header with code: " << static_cast<int>(code) << ", dataLen: " << dataLen); 
 	if (dataLen > messaging::MAX_MESSAGE_LENGTH)
 		throw sockets::server::ProtocolError("data length exceeds maximum allowed size");
 
@@ -115,7 +115,7 @@ void messaging::ServerProtocol::extractDirectMessage(ParsedRequest& pr, std::str
 void messaging::ServerProtocol::extractLength(ParsedRequest& pr, const char* rawHeader)
 {
 	char* endptr;
-	int length;
+	long long int length;
 	char charLength[messaging::REQUEST_DATA_LENGTH_SIZE + 1] = {0};
 	DBG("extracting length..");
 	
@@ -130,6 +130,18 @@ void messaging::ServerProtocol::extractLength(ParsedRequest& pr, const char* raw
 	if (endptr == charLength)
 	{
 		DBG("couldnt convert char length to int");
+		return;
+	}
+
+	if (*endptr != '\0')
+	{
+		DBG(" strtol: contains non number chars");
+		return;
+	}
+
+	if (errno == ERANGE || length < 0 || length > INT_MAX)
+	{
+		DBG("invalid length: out of range");
 		return;
 	}
 

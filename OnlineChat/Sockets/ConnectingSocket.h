@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SimpleSocket.h"
-
 namespace sockets
 {
 class ConnectingSocket : public SimpleSocket

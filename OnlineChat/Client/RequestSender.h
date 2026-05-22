@@ -23,6 +23,5 @@ public:
 private:
     INetworkManager& net;
     IAESWrapper& aes;
-    std::string toHex(std::string_view data);
 };
 }

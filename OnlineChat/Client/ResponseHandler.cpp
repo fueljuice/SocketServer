@@ -78,6 +78,9 @@ std::string ResponseHandler::messageForCode(messaging::ResponseCode code)
 	case RC::AESKEY:
 		return "AESKEY OK. Connection secured"; 
 
+    case RC::ALREADY_REQUESTED_ERR:
+        return "you already sent this request. only allowed to be sent once";
+
     default:
         return "Unknown error.";
     }

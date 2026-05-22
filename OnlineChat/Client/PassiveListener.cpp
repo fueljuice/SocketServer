@@ -53,13 +53,14 @@ void Client::PassiveListener::passiveListenLoop()
         std::cerr << "exeception in listener: " << e.what() << std::endl;
         shouldListen.store(false);
     }
+
 }
 
 bool Client::PassiveListener::checkForMessages()
 {
     if (net.isSocketClosed())
         throw ConnectionException("server closed");
-
+	DBG("checking for messages...");
     SOCKET sock = net.getSock();
 
     fd_set readSet;

@@ -35,7 +35,7 @@ private:
     IResponseReader& reader;
     INetworkManager& net;
     IResponseHandler& handler;
-    std::atomic<bool> shouldListen{ false };
+    std::atomic<bool> shouldListen;
     std::thread listenerThread;
     void passiveListenLoop();
     bool checkForMessages();

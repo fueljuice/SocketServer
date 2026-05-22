@@ -30,8 +30,9 @@ Client::UserClient::~UserClient()
 
 void Client::UserClient::startClient()
 {
-	passiveListener->startPassiveListener();
 	net->startNetwork();
+	passiveListener->startPassiveListener();
+
 }
 
 void Client::UserClient::stopClient()
@@ -60,7 +61,7 @@ void Client::UserClient::registerUser(std::string_view username) const
 	rqstSender->sendRequest(username, "", messaging::RequestType::REGISTER);
 }
 
-bool Client::UserClient::sendPublicKey()
+bool Client::UserClient::sendPublicKey(int timeToWaitForResponse)
 {
 	if (!rsa->generateRSAKeyPair())
 		return false;
@@ -68,6 +69,15 @@ bool Client::UserClient::sendPublicKey()
 	if (!rsaStr)
 		return false;
 	rqstSender->sendRequest(rsaStr.value(), "", messaging::RequestType::SEND_RSA_PKEY);
+
+	for (int i = 0; i < timeToWaitForResponse; ++i)
+	{
+		if (aes->hasKey())
+			return true;
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
 	return true;
 }
 
