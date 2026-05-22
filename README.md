@@ -270,7 +270,7 @@ Example `AESKEY` response with a 256-byte RSA-encrypted AES key:
 
 ## Key exchange protocol
 
-<img width="1181" height="1066" alt="May 22, 2026, 10_10_36 PM" src="https://github.com/user-attachments/assets/54f3bff2-4d96-42e8-b894-f21d2d98480c" />
+<img width="1086" height="461" alt="image" src="https://github.com/user-attachments/assets/ef782c90-d3b8-4b5a-bdee-b034295a4576" />
 
 
 ## Project structure
