@@ -20,6 +20,7 @@ sockets::server::ClientConnectionWorker::ClientConnectionWorker(
 
 void sockets::server::ClientConnectionWorker::run(SOCKET sock)
 {
+	std::cout << "Client connected " << std::endl;
     while (true)
     {
         // read from client
@@ -38,9 +39,12 @@ void sockets::server::ClientConnectionWorker::run(SOCKET sock)
 
 void sockets::server::ClientConnectionWorker::removeDeadClient(SOCKET sock)
 {
+  
     // remove session and from registry. send abort msg
     net.sendAll(sock, messaging::ServerProtocol::constructResponse(messaging::ResponseCode::ABORTED_ERR));
     sessions.removeClient(sock);
+    // updating the chat on the disconnection
+	handler.onClientDisconnect(sock);
     registry.eraseClient(sock);
 }
 

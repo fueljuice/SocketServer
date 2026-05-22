@@ -106,6 +106,11 @@ void sockets::server::RequestHandler::handleRequest(SOCKET sock, const messaging
 	}
 }
 
+void sockets::server::RequestHandler::onClientDisconnect(SOCKET sock)
+{
+	broadcastHelper("User " + reg.getUserName(sock) + " has left the chat");
+}
+
 void sockets::server::RequestHandler::handleGetChat(SOCKET sock)
 {
 	// read the chatlog
@@ -155,6 +160,9 @@ void sockets::server::RequestHandler::handleRegister(SOCKET sock, const messagin
 	// formatting and sending 
 	std::string formattedMsg = "registration successful as " + reg.getUserName(sock);
 	sendResponse(sock, formattedMsg, Code::OK);
+
+	// brodcasting new user's arrival
+	broadcastHelper("User " + reg.getUserName(sock) + " has joined the chat");
 }
 
 void sockets::server::RequestHandler::handleRSAKey(SOCKET sock, const messaging::ParsedRequest& parsdRqst)

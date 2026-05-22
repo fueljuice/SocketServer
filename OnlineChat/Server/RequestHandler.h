@@ -28,6 +28,7 @@ struct IRequestHandler
 public:
 	virtual ~IRequestHandler() = default;
 	virtual void handleRequest(SOCKET sock, const messaging::ParsedRequest& parsdRqst) = 0;
+	virtual void onClientDisconnect(SOCKET sock) = 0;
 };
 class RequestHandler : public IRequestHandler
 {
@@ -39,6 +40,7 @@ public:
 		ISessionManager& sesManager);
 
 	void handleRequest(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
+	void onClientDisconnect(SOCKET sock);
 
 
 private:
@@ -55,6 +57,7 @@ private:
 	void handleRSAKey(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
 	void broadcastHelper(std::string_view msg);
 
+	void onClientRegister(std::string_view username);
 	void sendResponse(SOCKET sock, std::string_view plainBody, messaging::ResponseCode code);
 	bool isRequestAllowed(bool isRegistered, bool isEncrypted, const messaging::ParsedRequest& parsdRqst);
 };
