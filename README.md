@@ -124,46 +124,7 @@ Note: the current console parsing reads message text with `std::cin >> msg`, so 
 
 ## Workflows
 
-### Client workflow
 
-```mermaid
-flowchart TD
-    A[Start client] --> B[Connect to server]
-    B --> C[Start passive listener]
-    C --> L[Waits for an event from the server]
-    L --> M[Lets ResponseHandler identify the response]
-    M --> N[Prints new messages and system notifications accordingly]
-    B --> D[Starts key exchange protocol]
-    D --> E[Requires user the register with a username. sends a register request using RequestSender]
-    E --> F[Recives]
-    F --> G[Decrypt AES key locally]
-    G --> H[Register username using AES]
-    H --> I[Fetch chat history]
-    I --> J[Send commands]
-    J --> K[Encrypt request bodies with AES]
-```
-
-### Server workflow
-
-```mermaid
-flowchart TD
-    A[Start server] --> B[Listen on TCP port]
-    B --> C[Accept client]
-    C --> D[Add socket to SessionManager]
-    D --> E[Create worker thread]
-    E --> F[Read request header and body]
-    F --> G[Parse request]
-    G --> H{Request type}
-    H -->|SEND_RSA_PKEY| I[Generate AES key]
-    I --> J[Encrypt AES key with client RSA public key]
-    J --> K[Store AES key in session]
-    K --> L[Send AESKEY response]
-    H -->|REGISTER / GET / MSG / DM| M[Validate encrypted session]
-    M --> N[Decrypt request body if present]
-    N --> O[Handle chat operation]
-    O --> P[Encrypt response body]
-    P --> Q[Send response or broadcast]
-```
 
 ## Protocol
 
