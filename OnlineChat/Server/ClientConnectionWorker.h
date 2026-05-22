@@ -16,6 +16,7 @@ namespace sockets::server
 {
 struct IClientConnectionWorker
 {
+    virtual ~IClientConnectionWorker() = default;
     virtual void run(SOCKET sock) = 0;
 };
 class ClientConnectionWorker : public IClientConnectionWorker

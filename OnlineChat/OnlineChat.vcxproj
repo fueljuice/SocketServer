@@ -156,6 +156,7 @@
     <ClCompile Include="Server\RequestHandler.cpp" />
     <ClCompile Include="Server\RequestReader.cpp" />
     <ClCompile Include="Server\Server.cpp" />
+    <ClCompile Include="Server\ServerBuilder.cpp" />
     <ClCompile Include="Server\SessionManager.cpp" />
     <ClCompile Include="Sockets\ConnectingSocket.cpp" />
     <ClCompile Include="Sockets\ListeningSocket.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="Server\RequestHandler.h" />
     <ClInclude Include="Server\RequestReader.h" />
     <ClInclude Include="Server\Server.h" />
+    <ClInclude Include="Server\ServerBuilder.h" />
     <ClInclude Include="Server\ServerException.h" />
     <ClInclude Include="Server\DataBaseManager.h" />
     <ClInclude Include="Protocol\ParsedResponse.h" />

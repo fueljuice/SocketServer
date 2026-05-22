@@ -30,8 +30,8 @@ Client::UserClient::~UserClient()
 
 void Client::UserClient::startClient()
 {
-	net->startNetwork();
 	passiveListener->startPassiveListener();
+	net->startNetwork();
 }
 
 void Client::UserClient::stopClient()

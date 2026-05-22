@@ -63,8 +63,8 @@ std::string messaging::ClientProtocol::constructHeader(size_t msgLength, Request
 	// check for msg length
 	if (msgLength > MAX_MESSAGE_LENGTH)
 	{
-		std::cerr << "Message length too long (max: " << MAX_MESSAGE_LENGTH << ")" << std::endl;
-		return {};
+		DBG("Message length too long (max: " << MAX_MESSAGE_LENGTH << ")" << std::endl);
+		throw Client::ProtocolException("Message length too long");
 	}
 
 	// construct header

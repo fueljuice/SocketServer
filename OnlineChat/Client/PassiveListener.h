@@ -15,6 +15,7 @@ namespace Client
 {
 struct IPassiveListener
 {
+	virtual ~IPassiveListener() = default;
     virtual void startPassiveListener() = 0;
     virtual void stopPassiveListener() = 0;
     virtual bool isListening() = 0;
@@ -34,7 +35,7 @@ private:
     IResponseReader& reader;
     INetworkManager& net;
     IResponseHandler& handler;
-    std::atomic<bool> shouldListen;
+    std::atomic<bool> shouldListen{ false };
     std::thread listenerThread;
     void passiveListenLoop();
     bool checkForMessages();

@@ -102,6 +102,9 @@
     <ClCompile Include="Client\ResponseHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Server\ServerBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client\UserClient.h">
@@ -198,6 +201,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Client\ResponseHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Server\ServerBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

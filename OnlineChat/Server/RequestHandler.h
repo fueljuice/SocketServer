@@ -26,6 +26,7 @@ namespace sockets::server
 struct IRequestHandler
 {
 public:
+	virtual ~IRequestHandler() = default;
 	virtual void handleRequest(SOCKET sock, const messaging::ParsedRequest& parsdRqst) = 0;
 };
 class RequestHandler : public IRequestHandler
@@ -45,14 +46,17 @@ private:
 	IUserRegistry& reg;
 	IdbManager& dbManager;
 	ISessionManager& sessionManager;
+
+	// request specific handling
 	void handleGetChat(SOCKET sock);
 	void handleSendMessage(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
 	void handleDirectMessage(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
 	void handleRegister(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
 	void handleRSAKey(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
-	bool isRequestAllowed(bool isRegistered, bool isEncrypted, const messaging::ParsedRequest& parsdRqst);
 	void broadcastHelper(std::string_view msg);
-	std::string toHex(std::string_view);
+
+	void sendResponse(SOCKET sock, std::string_view plainBody, messaging::ResponseCode code);
+	bool isRequestAllowed(bool isRegistered, bool isEncrypted, const messaging::ParsedRequest& parsdRqst);
 };
 }
 

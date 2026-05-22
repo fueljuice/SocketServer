@@ -55,6 +55,7 @@ namespace messaging
         REGISTRY_ERR = 6,
 
         AESKEY = 10,
-        AESKEY_ERR = 11
+        AESKEY_ERR = 11,
+		RSAKEY_ERR = 12
     };
 }

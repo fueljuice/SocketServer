@@ -11,6 +11,7 @@ namespace Client
 {
 struct IRequestSender
 {
+    virtual ~IRequestSender() = default;
     virtual void sendRequest(std::string_view msg, std::string_view recver, messaging::RequestType requestType) = 0;
 };
 class RequestSender : public IRequestSender
