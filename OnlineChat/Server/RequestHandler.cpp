@@ -105,7 +105,7 @@ void sockets::server::RequestHandler::handleGetChat(SOCKET sock)
 {
 	DBG("getChat request called");
 	const std::string dbContent = dbManager.readDB();
-	const auto decryptedMsg = AESWrapper::decryptWithKey(dbContent, sessionManager.getAESkey(sock));
+	const auto decryptedMsg = AESWrapper::encryptWithKey(dbContent, sessionManager.getAESkey(sock));
 	if (!decryptedMsg)
 		throw AESSessionKeyError("decryption failed for send message request");
 	const std::string payload = messaging::ServerProtocol::constructResponse(decryptedMsg.value(), Code::OK);
@@ -130,6 +130,11 @@ void sockets::server::RequestHandler::handleSendMessage(SOCKET sock, const messa
 
 void sockets::server::RequestHandler::handleRegister(SOCKET sock, const messaging::ParsedRequest& parsedRq)
 {
+
+	DBG("SERVER KEY SIZE: " << sessionManager.getAESkey(sock).size());
+	DBG("SERVER KEY HEX: " << toHex(sessionManager.getAESkey(sock)));
+	DBG("SERVER CIPHER SIZE: " << parsedRq.dataBuffer.size());
+	DBG("SERVER CIPHER HEX: " << toHex(parsedRq.dataBuffer));
 	const auto decryptedUsername = AESWrapper::decryptWithKey(parsedRq.dataBuffer, sessionManager.getAESkey(sock));
 	if (!decryptedUsername)
 		throw AESSessionKeyError("decryption failed for send message request");
@@ -160,7 +165,8 @@ void sockets::server::RequestHandler::handleRSAKey(SOCKET sock, const messaging:
 	const auto AESkey = AESWrapper::generateAESKey();
 	if (!AESkey) 
 		throw AESSessionKeyError("AES key generation failed");
-
+	DBG("AES KEY SIZE: " << AESkey.value().size());
+	DBG("AES KEY HEX: " << AESkey.value());
 	// encrypt the AES key with the clients RSA public key
 	const auto encryptedAESkey = RSAWrapper::encryptWithPublicKey(AESkey.value(), parsdRqst.dataBuffer);
 	if (!encryptedAESkey)
@@ -220,6 +226,23 @@ void sockets::server::RequestHandler::broadcastHelper(std::string_view msg)
 			netIO.sendAll(s, payload);
 		}
 	}
+}
+
+std::string sockets::server::RequestHandler::toHex(std::string_view data)
+{
+
+	static constexpr char hex[] = "0123456789ABCDEF";
+	std::string out;
+	out.reserve(data.size() * 2);
+
+	for (unsigned char c : data)
+	{
+		out.push_back(hex[c >> 4]);
+		out.push_back(hex[c & 0x0F]);
+	}
+
+	return out;
+	
 }
 
 bool sockets::server::RequestHandler::isRequestAllowed(

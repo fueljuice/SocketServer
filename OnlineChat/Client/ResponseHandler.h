@@ -34,6 +34,7 @@ public:
 private:
     std::string messageForCode(messaging::ResponseCode code);
     bool handleAESKeyResponse(std::string_view data);
+	std::string toHex(std::string_view data);
 
 private:
     IAESWrapper& aes;

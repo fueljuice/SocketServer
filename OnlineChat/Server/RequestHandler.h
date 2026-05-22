@@ -52,7 +52,7 @@ private:
 	void handleRSAKey(SOCKET sock, const messaging::ParsedRequest& parsdRqst);
 	bool isRequestAllowed(bool isRegistered, bool isEncrypted, const messaging::ParsedRequest& parsdRqst);
 	void broadcastHelper(std::string_view msg);
-
+	std::string toHex(std::string_view);
 };
 }
 

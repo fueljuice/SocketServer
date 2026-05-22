@@ -1,10 +1,18 @@
 #include "AESWrapper.h"
 
+#ifdef PR_DEBUG
+#define DBG(X) std::cout << X << std::endl
+#else
+#define DBG(X)
+#endif
+
+
 std::optional<std::string> AESWrapper::decryptWithKey(std::string_view ciphertext, std::string_view key)
 {
-
+	DBG("decrypting with key");
     if (key.size() != AES_KEY_SIZE || ciphertext.size() < AES_IV_SIZE) 
 		return {};
+    DBG("decrypting with key2");
 
     const auto* iv = reinterpret_cast<const unsigned char*>(ciphertext.data());
 
@@ -18,6 +26,7 @@ std::optional<std::string> AESWrapper::decryptWithKey(std::string_view ciphertex
     if (!ctx)
         return {};
 
+    DBG("decrypting with key3");
 
     std::string decrypted;
     decrypted.resize(encrypted_len + EVP_MAX_BLOCK_LENGTH);
@@ -55,12 +64,14 @@ std::optional<std::string> AESWrapper::decryptWithKey(std::string_view ciphertex
     }
 
     EVP_CIPHER_CTX_free(ctx);
+    DBG("decrypting with key4");
 
     if (!ok) {
         return {};
     }
 
     decrypted.resize(plaintext_len);
+    DBG("returning final decryption5");
     return decrypted;
 }
 
@@ -90,6 +101,11 @@ std::optional<std::string>  AESWrapper::decrypt(std::string_view cipherText) con
 void AESWrapper::setKey(std::string key)
 {
 	key_ = std::move(key);
+}
+
+std::string AESWrapper::getKey() const
+{
+	return key_;
 }
 
 bool AESWrapper::hasKey() const

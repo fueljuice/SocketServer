@@ -22,6 +22,6 @@ public:
 private:
     INetworkManager& net;
     IAESWrapper& aes;
-    std::string buildRequest(std::string_view msg, std::string_view recver, messaging::RequestType requestType);
+    std::string toHex(std::string_view data);
 };
 }

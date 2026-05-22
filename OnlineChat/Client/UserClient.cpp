@@ -40,14 +40,24 @@ void Client::UserClient::stopClient()
 	passiveListener->stopPassiveListener();
 }
 
-void Client::UserClient::sendToServer(std::string_view msg, std::string_view rcver, messaging::RequestType rqstType)
+void Client::UserClient::getChat() const
 {
-	rqstSender->sendRequest(msg, rcver, rqstType);
+	rqstSender->sendRequest("", "", messaging::RequestType::GET_CHAT);
 }
 
-void Client::UserClient::sendToServer(std::string_view msg, messaging::RequestType rqstType)
+void Client::UserClient::sendMessage(std::string_view msg) const
 {
-	rqstSender->sendRequest(msg, "", rqstType);
+	rqstSender->sendRequest(msg, "", messaging::RequestType::SEND_MESSAGE);
+}
+
+void Client::UserClient::sendDirectMessage(std::string_view msg, std::string_view recver) const
+{
+	rqstSender->sendRequest(msg, recver, messaging::RequestType::DIRECT_MESSAGE);
+}
+
+void Client::UserClient::registerUser(std::string_view username) const
+{
+	rqstSender->sendRequest(username, "", messaging::RequestType::REGISTER);
 }
 
 bool Client::UserClient::sendPublicKey()

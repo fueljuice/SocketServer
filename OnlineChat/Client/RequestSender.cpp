@@ -14,33 +14,68 @@ Client::RequestSender::RequestSender(INetworkManager& net_p, IAESWrapper& aes_p)
 {
 }
 
-void Client::RequestSender::sendRequest(std::string_view msg, std::string_view recver, messaging::RequestType requestType)
+void Client::RequestSender::sendRequest(
+    std::string_view msg,
+    std::string_view recver,
+    messaging::RequestType requestType)
 {
-	// if key was initialized, encrypt the message before sending
-    if(aes.hasKey())
+    auto sendPayload = [&](std::string_view body)
+        {
+            const std::string payload =
+                messaging::ClientProtocol::constructRequest(body, recver, requestType);
+
+            DBG("data to send: " << payload);
+
+            if (!net.sendAll(payload))
+                throw ConnectionException("could not send request to server");
+
+            DBG("sent request to server");
+        };
+    // direct message must have a recver
+    if (requestType == messaging::RequestType::DIRECT_MESSAGE && recver.empty())
+        throw ClientException("recver cannot be empty for direct message");
+
+    // do not need to encrypt the rsa publick key
+    if (requestType == messaging::RequestType::SEND_RSA_PKEY)
     {
-        auto decryptedMsg = aes.encrypt(msg);
-        if (!decryptedMsg)
-            throw ClientException("encryption failed");
-
-        msg = std::move(decryptedMsg.value());
+        if (aes.hasKey())
+            throw ClientException("AES key already established, cannot send RSA public key again");
+        sendPayload(msg);
+        return;
     }
-    // construct request
-    std::string payload = buildRequest(msg, recver, requestType);
 
-    // send it
-    DBG("data to send: " << payload);
-    if (!net.sendAll(payload))
-        throw ConnectionException("could not send to client");
-    DBG("sent to server:");
+	// must have a aes key for non RSA key requests
+    if (!aes.hasKey())
+        throw ClientException("AES key is not established yet");
+    
+    // dony encrypt if theres no body to the message
+    if (msg.empty())
+    {
+        sendPayload("");
+        return;
+    }
+
+    auto encryptedMsg = aes.encrypt(msg);
+    if (!encryptedMsg)
+        throw ClientException("AES encryption failed");
+
+    sendPayload(encryptedMsg.value());
 }
 
-std::string Client::RequestSender::buildRequest(std::string_view msg, std::string_view recver, messaging::RequestType requestType)
+std::string Client::RequestSender::toHex(std::string_view data)
 {
-    // construct request
-    const size_t msgLength = msg.size() + recver.size();
-    std::string payload = messaging::ClientProtocol::constructRequest(msg, recver, requestType);
-    
-    DBG("data to send: " << payload);
-    return payload;
+
+    static constexpr char hex[] = "0123456789ABCDEF";
+    std::string out;
+    out.reserve(data.size() * 2);
+
+    for (unsigned char c : data)
+    {
+        out.push_back(hex[c >> 4]);
+        out.push_back(hex[c & 0x0F]);
+    }
+
+    return out;
+
+
 }

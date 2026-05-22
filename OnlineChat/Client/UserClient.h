@@ -29,8 +29,10 @@ struct IClient
     virtual void startClient() = 0;
     virtual void stopClient() = 0;
 
-    virtual void sendToServer(std::string_view msg, std::string_view rcver, messaging::RequestType action) = 0;
-    virtual void sendToServer(std::string_view msg, messaging::RequestType action) = 0;
+    virtual void getChat() const = 0;
+    virtual void sendMessage(std::string_view msg) const = 0;
+    virtual void sendDirectMessage(std::string_view msg, std::string_view recver) const = 0;
+    virtual void registerUser(std::string_view username) const = 0;
     virtual bool sendPublicKey() = 0;
 
 };
@@ -43,8 +45,10 @@ public:
     void startClient() override;
     void stopClient() override;
 
-    void sendToServer(std::string_view msg, std::string_view rcver, messaging::RequestType rqstType) override;
-    void sendToServer(std::string_view msg, messaging::RequestType rqstType) override;
+	void getChat() const override;
+	void sendMessage(std::string_view msg) const override;
+	void sendDirectMessage(std::string_view msg, std::string_view recver) const override;
+	void registerUser(std::string_view username) const override;
     bool sendPublicKey() override;
 
 private:

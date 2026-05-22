@@ -1,6 +1,10 @@
 #include "ResponseHandler.h"
 
-
+#ifdef PR_DEBUG
+#define DBG(X) std::cout << X << std::endl
+#else
+#define DBG(X)
+#endif // PR_DEBUG
 
 ResponseHandler::ResponseHandler(IAESWrapper& aes, IRSAWrapper& rsa, IGuiManager& gui)
     :
@@ -12,7 +16,9 @@ ResponseHandler::ResponseHandler(IAESWrapper& aes, IRSAWrapper& rsa, IGuiManager
 
 void ResponseHandler::handleResponse(std::string_view data, messaging::ResponseCode code)
 {
-    // case aes key
+	DBG("handling response with code: " << static_cast<int>(code) << " and data: " << data);
+
+    // hanling aes key response. 
 	if (code == messaging::ResponseCode::AESKEY)
     {
         if(!handleAESKeyResponse(data))
@@ -23,10 +29,17 @@ void ResponseHandler::handleResponse(std::string_view data, messaging::ResponseC
 		gui.logScreen("", messageForCode(messaging::ResponseCode::AESKEY));
         return;
     }
-	auto decrypted = aes.decrypt(data);
+    // dont decrypt if data is empty
+    if (data.empty())
+    {
+        gui.logScreen(data, messageForCode(code));
+        return;
+    }
+    auto decrypted = aes.decrypt(data);
     if (!decrypted)
         return;
     gui.logScreen(decrypted.value(), messageForCode(code));
+    
 }
 
 std::string ResponseHandler::messageForCode(messaging::ResponseCode code)
@@ -62,6 +75,9 @@ std::string ResponseHandler::messageForCode(messaging::ResponseCode code)
 	case RC::AESKEY_ERR:
 		return "Failed to establish a secure connection. Please try again later."; 
 
+	case RC::AESKEY:
+		return "AESKEY OK. Connection secured"; 
+
     default:
         return "Unknown error.";
     }
@@ -78,6 +94,26 @@ bool ResponseHandler::handleAESKeyResponse(std::string_view data)
     if (!aesKey)
         return false;
 
+    DBG("CLIENT KEY SIZE: " << aesKey.value().size());
+    DBG("CLIENT KEY HEX: " << toHex(aesKey.value()));
     aes.setKey(aesKey.value());
     return true;
+}
+
+std::string ResponseHandler::toHex(std::string_view data)
+{
+
+    static constexpr char hex[] = "0123456789ABCDEF";
+    std::string out;
+    out.reserve(data.size() * 2);
+
+    for (unsigned char c : data)
+    {
+        out.push_back(hex[c >> 4]);
+        out.push_back(hex[c & 0x0F]);
+    }
+
+    return out;
+
+  
 }

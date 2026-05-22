@@ -2,6 +2,7 @@
 #include <string>
 #include <optional>
 #include <string_view>
+#include <iostream>
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -17,6 +18,7 @@ public:
     virtual std::optional<std::string> decrypt(std::string_view cipherText) const = 0;
 
     virtual void setKey(std::string key) = 0;
+    virtual std::string getKey() const = 0;
 	virtual bool hasKey() const = 0;
 };
 
@@ -46,7 +48,7 @@ public:
 
     // setter for the key after construction
     void setKey(std::string key) override;
-
+    std::string getKey() const;
     virtual bool hasKey() const override;
     // decrypt and encrypt without constructing the class
     static std::optional<std::string>  encryptWithKey(std::string_view plainText, std::string_view publicKey);
