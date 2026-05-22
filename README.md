@@ -123,9 +123,59 @@ q                          Quit
 Note: the current console parsing reads message text with `std::cin >> msg`, so messages are read as a single whitespace-delimited token.
 
 ## Workflows
+### Client Workflow
 
+```mermaid
+flowchart TD
+    A([Start Client]) --> B[Connect to server]
+    B --> C[Generate RSA key pair]
+    C --> D[Send RSA public key]
+    D --> E[Receive encrypted AES key]
+    E --> F[Decrypt and save AES key]
+    F --> G[Register username]
+    G --> H[Fetch chat history]
+    H --> I{User command}
 
+    I -->|/msg| J[Encrypt and send public message]
+    I -->|/dm| K[Encrypt and send direct message]
+    I -->|/get| L[Request chat history]
+    I -->|q| M[Close connection]
 
+    J --> I
+    K --> I
+    L --> I
+
+    B -.-> N[Passive listener thread]
+    N --> O[Receive server responses / broadcasts]
+    O --> P[Decrypt with AES]
+    P --> Q[Print to screen]
+    Q --> N
+
+    M --> Z([Exit])
+```
+### server worflow
+```mermaid
+flowchart TD
+    A([Start Server]) --> B[Open database handle]
+    B --> C[Listen for TCP clients]
+    C-->C
+    D[Accept client]
+    D --> E[Create client session]
+    E --> F[Start worker thread]
+    F --> G[Read request]
+    G --> H{Request type}
+
+    H -->|RSA public key| I[Generate AES key<br/>encrypt with RSA<br/>send to client]
+    H -->|Register| J[Decrypt username<br/>register client]
+    H -->|Get chat| K[Read database<br/>send chat history]
+    H -->|Public message| L[Decrypt message<br/>save to database<br/>broadcast to clients]
+    H -->|Direct message| M[Decrypt message<br/>send to target user]
+    H -->|Disconnect / error| N[Remove session<br/>notify clients]
+
+    N --> Z([Worker exits])
+
+    C --> D
+```
 ## Protocol
 
 OnlineChat uses fixed-size ASCII headers followed by a variable-size body.
