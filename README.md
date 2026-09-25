@@ -9,6 +9,7 @@ OnlineChat is an educational **TCP chat system** written in **C++17** for Window
 
 The project includes both a server and a console client. The server accepts multiple clients concurrently, stores public chat messages in a local text file that server as a database, broadcasts public updates, supports direct(private) and global messages, and performs a encrypted session setup using OpenSSL.
 
+**i created this project for the sole purpose of learning the C / Cpp language, and networking APIs/ protocols. it does not serve as a TRULY secure connection, since a MITM attack can be performed by forging the public key in the key xchg protocol, and because there is no checksum/mac**
 ## Features
 
 - **TCP server** using Winsock
