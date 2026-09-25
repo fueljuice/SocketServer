@@ -194,29 +194,36 @@ void sockets::server::RequestHandler::handleDirectMessage(SOCKET sock, const mes
 	// decrypting the message
 	const auto decryptedMsg = AESWrapper::decryptWithKey(parsedRq.dataBuffer, sessionManager.getAESkey(sock));
 	if (!decryptedMsg)
-		throw AESSessionKeyError("encryption of AES key failed");
+		throw AESSessionKeyError("decryption failed for direct message request");
+
+	// verify receiver was provided
+	if (!parsedRq.recver)
+		throw UserNotFoundError("receiver missing");
 
 	// getting sender username
 	const std::string& senderUsername = reg.getUserName(sock);
-	DBG("databuffer" << decryptedMsg.value());
 
-	// verify recver avaiable
-	if (!parsedRq.recver)
-		throw UserNotFoundError("receiver missing");
+	// resolve the receiver's socket
 	SOCKET targetSock = reg.getSocket(parsedRq.recver.value());
 	if (targetSock == INVALID_SOCKET)
 		throw UserNotFoundError("user not found");
 
-	DBG("parsed DM data, target user: " << *decryptedMsg << ", message content: " << parsedRq.recver.value());
-	
-	// formatting and sending the message to the reciver
-	const std::string messageToReciever = "(DM from " + senderUsername + "): " + decryptedMsg.value();
-	sendResponse(sock, messageToReciever, messaging::ResponseCode::OK);
+	// disallow DMing yourself
+	if (targetSock == sock)
+		throw ProtocolError("cannot direct message yourself");
 
-	// formatting and sending the message to the sender
+	DBG("DM from " << senderUsername << " to " << parsedRq.recver.value()
+		<< ", content: " << decryptedMsg.value());
+
+	// message the RECEIVER sees -> goes to targetSock
+	const std::string messageToReceiver = "(DM from " + senderUsername + "): " + decryptedMsg.value();
+	sendResponse(targetSock, messageToReceiver, messaging::ResponseCode::OK);
+
+	// confirmation the SENDER sees -> goes back to sock
 	const std::string messageToSender = "(You've sent a DM to " + parsedRq.recver.value() + "): " + decryptedMsg.value();
-	sendResponse(targetSock, messageToSender, messaging::ResponseCode::OK);
+	sendResponse(sock, messageToSender, messaging::ResponseCode::OK);
 }
+
 
 void sockets::server::RequestHandler::broadcastHelper(std::string_view msg)
 {
